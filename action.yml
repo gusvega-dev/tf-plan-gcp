@@ -1,0 +1,21 @@
+name: 'Terraform Plan for GCP'
+description: 'Runs Terraform plan in a containerized GitHub Action'
+author: 'Gus Vega'
+inputs:
+  tf_working_directory:
+    description: 'Path to the Terraform directory'
+    required: false
+    default: '.'
+  tf_version:
+    description: 'Terraform version to install'
+    required: false
+    default: '1.5.0'
+outputs:
+  plan_output:
+    description: 'Terraform plan output'
+runs:
+  using: 'docker'
+  image: 'docker://ghcr.io/gusvega-dev/tf-plan-gcp:latest'
+branding:
+  icon: 'terminal'
+  color: 'blue'
