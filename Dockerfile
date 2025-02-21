@@ -1,21 +1,27 @@
-# Use a lightweight Node.js image
-FROM node:18-alpine
+FROM hashicorp/terraform:1.5.0
 
-# Install Terraform
-RUN apk add --no-cache terraform
+LABEL "com.github.actions.name"="Terraform Plan Action"
+LABEL "com.github.actions.description"="Run Terraform plan inside a GitHub Action"
+LABEL "com.github.actions.icon"="terminal"
+LABEL "com.github.actions.color"="blue"
 
-# Set up the working directory
+# Install Node.js for JavaScript execution
+RUN apk add --no-cache nodejs npm git
+
+# Set the working directory
 WORKDIR /app
 
-# Copy action files
-COPY entrypoint.sh /entrypoint.sh
-COPY index.js /app/index.js
+# Copy package.json and package-lock.json
 COPY package.json package-lock.json /app/
 
-# Install Node.js dependencies
-RUN npm install --production
+# Install dependencies using lock file for consistency
+RUN npm ci --prefix /app
 
-# Make the entrypoint executable
+# Copy script files
+COPY entrypoint.sh /entrypoint.sh
+COPY index.js /app/index.js
+
+# Make entrypoint executable
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
