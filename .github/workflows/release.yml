@@ -1,4 +1,4 @@
-name: Publish GitHub Action
+name: Publish Docker-Based GitHub Action to GHCR
 
 on:
   push:
@@ -11,23 +11,33 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: write  # Allow pushing to GHCR
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Log in to GitHub Container Registry (GHCR)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build GitHub Action
-        run: npm run prepare || echo "No build step required"
-
-      - name: Commit & Push Changes
+      - name: Build Docker Image
+        env:
+          IMAGE_NAME: ghcr.io/gusvega-dev/tf-plan-gcp
         run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"
-          git add .
-          git commit -m "Updated GitHub Action" || echo "No changes to commit"
-          git push
+          docker build -t $IMAGE_NAME:latest .
+          docker tag $IMAGE_NAME:latest $IMAGE_NAME:$(date +%Y%m%d%H%M%S)
+
+      - name: Push Docker Image to GHCR
+        env:
+          IMAGE_NAME: ghcr.io/gusvega-dev/tf-plan-gcp
+        run: |
+          docker push $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:$(date +%Y%m%d%H%M%S)
+
+      - name: Set Image Visibility to Private
+        run: |
+          gh api \
+            --method PATCH \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            /orgs/gusvega-dev/packages/container/tf-plan-gcp \
+            -f visibility=private

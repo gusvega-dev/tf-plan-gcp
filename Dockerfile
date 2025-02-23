@@ -6,15 +6,13 @@ RUN apk add --no-cache \
     git \
     openssh \
     curl \
-    jq
-
-# Install tfenv for version management
-RUN git clone https://github.com/tfutils/tfenv.git ~/.tfenv && \
-    ln -s ~/.tfenv/bin/* /usr/local/bin/
+    jq \
+    python3 \
+    py3-pip
 
 # Copy the entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Run the script
+# Set entrypoint
 ENTRYPOINT ["/entrypoint.sh"]

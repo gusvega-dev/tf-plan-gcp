@@ -1,18 +1,10 @@
 name: "Terraform Plan Action"
-description: "A GitHub Action to automate Terraform Init & Plan in CI/CD pipelines"
-author: "Gus Vega"
-branding:
-  icon: "cloud"
-  color: "blue"
+description: "A paid GitHub Action for Terraform Plan"
+author: "Your Org"
 
 inputs:
-  tf_version:
-    description: "Terraform version to use"
-    required: false
-    default: "1.5.6"
-
   workdir:
-    description: "Working directory where Terraform configuration files are located"
+    description: "Working directory for Terraform"
     required: false
     default: "."
 
@@ -21,6 +13,5 @@ outputs:
     description: "Status of Terraform Plan execution"
 
 runs:
-  using: "node20"
-  main: "index.js"
-  pre: "npm install"
+  using: "docker"
+  image: "docker://ghcr.io/gusvega-dev/tf-plan-gcp:latest"
