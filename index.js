@@ -7,28 +7,20 @@ async function run() {
     try {
         const workdir = core.getInput('workdir') || '.';
 
-        // Resolve absolute path for workdir
+        // Ensure Terraform can access the GCP credentials
+        const gcpCredentialsPath = "/app/gcp-credentials.json";
+        if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+            core.info(`🔑 Writing GCP credentials to ${gcpCredentialsPath}`);
+            fs.writeFileSync(gcpCredentialsPath, process.env.GOOGLE_APPLICATION_CREDENTIALS);
+            process.env.GOOGLE_APPLICATION_CREDENTIALS = gcpCredentialsPath; // Ensure it's set correctly
+        } else {
+            core.warning("⚠️ GOOGLE_APPLICATION_CREDENTIALS is not set.");
+        }
+
+        // Change to the specified working directory
         const absoluteWorkdir = path.resolve(workdir);
-        core.info(`📂 Changing to working directory: ${absoluteWorkdir}`);
-
-        // Ensure directory exists
-        if (!fs.existsSync(absoluteWorkdir)) {
-            throw new Error(`❌ Error: Specified workdir '${absoluteWorkdir}' does not exist!`);
-        }
-
-        // Change to working directory
         process.chdir(absoluteWorkdir);
-
-        // Debug: List directory contents
-        core.info(`📁 Listing files in: ${absoluteWorkdir}`);
-        const files = fs.readdirSync(absoluteWorkdir);
-        core.info(`📂 Files: ${files.join(', ')}`);
-
-        // Check if Terraform files exist
-        const tfFiles = files.filter(file => file.endsWith('.tf'));
-        if (tfFiles.length === 0) {
-            throw new Error("❌ Error: No Terraform configuration files (.tf) found in the workdir!");
-        }
+        core.info(`📂 Changed to working directory: ${absoluteWorkdir}`);
 
         // Run Terraform Init
         core.info("🏗 Running Terraform Init...");
