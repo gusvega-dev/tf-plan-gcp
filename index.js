@@ -2,6 +2,17 @@ const core = require('@actions/core');
 const exec = require('@actions/exec');
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
+const { promisify } = require('util');
+const stream = require('stream');
+
+async function downloadFile(url, outputPath) {
+    core.info(`📥 Downloading Terraform from ${url}...`);
+    const pipeline = promisify(stream.pipeline);
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to download: ${response.statusText}`);
+    await pipeline(response.body, fs.createWriteStream(outputPath));
+}
 
 async function run() {
     try {
@@ -10,16 +21,21 @@ async function run() {
 
         core.info(`📢 Setting up Terraform version ${tfVersion}...`);
 
-        // Install dependencies and Terraform (without sudo)
-        await exec.exec(`apt-get update && apt-get install -y wget unzip`);
-        await exec.exec(`wget https://releases.hashicorp.com/terraform/${tfVersion}/terraform_${tfVersion}_linux_amd64.zip`);
-        await exec.exec(`unzip terraform_${tfVersion}_linux_amd64.zip`);
+        // Define Terraform download URL
+        const terraformUrl = `https://releases.hashicorp.com/terraform/${tfVersion}/terraform_${tfVersion}_linux_amd64.zip`;
+        const terraformZip = path.join(__dirname, 'terraform.zip');
+        const terraformBinary = path.join(__dirname, 'terraform');
+
+        // Download and extract Terraform without apt-get
+        await downloadFile(terraformUrl, terraformZip);
+        await exec.exec(`unzip ${terraformZip}`);
+        await exec.exec(`chmod +x terraform`);
         await exec.exec(`mv terraform /usr/local/bin/terraform`);
 
         // Verify Terraform installation
         await exec.exec('terraform --version');
 
-        // Resolve absolute path for the workdir
+        // Resolve absolute path for workdir
         workdir = path.resolve(workdir);
         core.info(`📂 Changing to working directory: ${workdir}`);
 
