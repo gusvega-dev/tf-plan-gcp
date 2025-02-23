@@ -7,6 +7,32 @@ async function run() {
     try {
         const workdir = core.getInput('workdir') || '.';
 
+        // Resolve absolute path
+        workdir = path.resolve(workdir);
+        core.info(`📂 Workdir provided: ${workdir}`);
+
+        // Print current working directory before changing
+        core.info(`🔍 Current directory: ${process.cwd()}`);
+        core.info("📁 Listing current directory contents:");
+        fs.readdirSync(process.cwd()).forEach(file => {
+            core.info(`  📄 ${file}`);
+        });
+
+        // Ensure directory exists
+        if (!fs.existsSync(workdir)) {
+            throw new Error(`❌ Error: Specified workdir '${workdir}' does not exist!`);
+        }
+
+        // Change to working directory
+        process.chdir(workdir);
+        core.info(`✅ Changed to workdir: ${workdir}`);
+
+        // Print new working directory contents
+        core.info("📁 Listing workdir contents:");
+        fs.readdirSync(workdir).forEach(file => {
+            core.info(`  📄 ${file}`);
+        });
+
         // Ensure Terraform can access the GCP credentials
         const gcpCredentialsPath = "/app/gcp-credentials.json";
         if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
