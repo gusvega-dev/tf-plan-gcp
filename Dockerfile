@@ -1,7 +1,12 @@
 FROM node:20-bullseye
 
-# Install system dependencies (wget, unzip, and Terraform dependencies)
-RUN apt-get update && apt-get install -y wget unzip
+# Set environment variables to prevent user interaction during package installation
+ENV DEBIAN_FRONTEND=noninteractive 
+
+# Update package lists and install required dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wget unzip && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set working directory inside the container
 WORKDIR /app
