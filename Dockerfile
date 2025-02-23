@@ -13,4 +13,4 @@ COPY . /app
 RUN npm install
 
 # Set entrypoint to run index.js
-ENTRYPOINT ["node", "index.js"]
+ENTRYPOINT ["node", "/app/index.js"]
