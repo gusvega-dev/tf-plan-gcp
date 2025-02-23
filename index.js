@@ -1,5 +1,4 @@
 const core = require('@actions/core');
-const exec = require('@actions/exec');
 const fs = require('fs');
 const path = require('path');
 
@@ -17,12 +16,7 @@ async function run() {
             core.warning("⚠️ GOOGLE_APPLICATION_CREDENTIALS is not set.");
         }
 
-        // Change to the specified working directory
-        const absoluteWorkdir = path.resolve(workdir);
-        process.chdir(absoluteWorkdir);
-        core.info(`📂 Changed to working directory: ${absoluteWorkdir}`);
-
-        // Run Terraform Init
+        // Ensure Terraform Init works
         core.info("🏗 Running Terraform Init...");
         await exec.exec('terraform init');
 
@@ -30,14 +24,6 @@ async function run() {
         core.info("📊 Running Terraform Plan...");
         await exec.exec('terraform plan -out=tfplan');
 
-        // Convert Terraform Plan to JSON
-        core.info("📄 Converting Terraform Plan to JSON...");
-        await exec.exec('terraform show -json tfplan > plan.json');
-
-        // Read and output plan
-        const planOutput = fs.readFileSync(path.join(absoluteWorkdir, 'plan.json'), 'utf8');
-        core.setOutput('plan_status', planOutput);
-        core.info("✅ Terraform Plan completed successfully!");
     } catch (error) {
         core.setFailed(`Terraform Plan failed: ${error.message}`);
     }
