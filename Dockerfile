@@ -1,21 +1,15 @@
-# Use Ubuntu as the base image
-FROM ubuntu:20.04
+FROM node:20
 
-# Install system dependencies (including Node.js, npm, sudo, wget, and unzip)
-RUN apt-get update && apt-get install -y \
-    nodejs \
-    npm \
-    sudo \
-    wget \
-    unzip
+# Install system dependencies
+RUN apt-get update && apt-get install -y wget unzip
 
 # Set working directory inside the container
 WORKDIR /app
 
-# Copy action files
+# Copy files
 COPY . /app
 
-# Install Node.js dependencies
+# Install dependencies
 RUN npm install
 
 # Set entrypoint to run index.js
