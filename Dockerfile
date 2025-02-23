@@ -1,4 +1,4 @@
-FROM node:20-bullseye
+FROM node:20-slim
 
 # Set environment variables to prevent user interaction during package installation
 ENV DEBIAN_FRONTEND=noninteractive 
