@@ -5,7 +5,19 @@ const path = require('path');
 
 async function run() {
     try {
-        const workdir = core.getInput('workdir') || '.';
+        let workdir = core.getInput('workdir') || '.';
+
+        // Resolve absolute path
+        workdir = path.resolve(workdir);
+        core.info(`📂 Changing to working directory: ${workdir}`);
+
+        // Ensure directory exists
+        if (!fs.existsSync(workdir)) {
+            throw new Error(`❌ Error: Specified workdir '${workdir}' does not exist!`);
+        }
+
+        // Change to working directory
+        process.chdir(workdir);
 
         // Ensure Terraform can access the GCP credentials
         const gcpCredentialsPath = "/app/gcp-credentials.json";
@@ -17,7 +29,7 @@ async function run() {
             core.warning("⚠️ GOOGLE_APPLICATION_CREDENTIALS is not set.");
         }
 
-        // Ensure Terraform Init works
+        // Run Terraform Init
         core.info("🏗 Running Terraform Init...");
         await exec.exec('terraform init');
 
