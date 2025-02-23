@@ -10,11 +10,14 @@ async function run() {
 
         core.info(`📢 Setting up Terraform version ${tfVersion}...`);
 
-        // Install Terraform
-        await exec.exec(`sudo apt-get update && sudo apt-get install -y wget unzip`);
+        // Install dependencies and Terraform (without sudo)
+        await exec.exec(`apt-get update && apt-get install -y wget unzip`);
         await exec.exec(`wget https://releases.hashicorp.com/terraform/${tfVersion}/terraform_${tfVersion}_linux_amd64.zip`);
         await exec.exec(`unzip terraform_${tfVersion}_linux_amd64.zip`);
-        await exec.exec(`sudo mv terraform /usr/local/bin/terraform`);
+        await exec.exec(`mv terraform /usr/local/bin/terraform`);
+
+        // Verify Terraform installation
+        await exec.exec('terraform --version');
 
         // Resolve absolute path for the workdir
         workdir = path.resolve(workdir);
