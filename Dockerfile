@@ -1,18 +1,16 @@
-FROM hashicorp/terraform:latest
+FROM node:20  # Use Node.js runtime
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y wget unzip
+
+# Set working directory inside the container
+WORKDIR /app
+
+# Copy files
+COPY . /app
 
 # Install dependencies
-RUN apk add --no-cache \
-    bash \
-    git \
-    openssh \
-    curl \
-    jq \
-    python3 \
-    py3-pip
+RUN npm install
 
-# Copy the entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Set entrypoint
-ENTRYPOINT ["/entrypoint.sh"]
+# Set entrypoint to run index.js
+ENTRYPOINT ["node", "index.js"]
