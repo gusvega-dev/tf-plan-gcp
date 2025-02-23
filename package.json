@@ -4,7 +4,6 @@
     "description": "GitHub Action for Terraform Plan",
     "main": "index.js",
     "scripts": {
-        "prepare": "npm install",
         "test": "echo 'No tests defined'"
     },
     "dependencies": {
