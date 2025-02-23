@@ -5,7 +5,7 @@ const path = require('path');
 
 async function run() {
     try {
-        const workdir = core.getInput('workdir') || '.';
+        let workdir = core.getInput('workdir') || '.';
 
         // Resolve absolute path
         workdir = path.resolve(workdir);
