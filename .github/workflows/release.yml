@@ -18,8 +18,8 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Build GitHub Action
-        run: npm run build || echo "No build step required"
+      - name: Install Dependencies
+        run: npm install
 
       - name: Commit & Push Changes
         run: |
