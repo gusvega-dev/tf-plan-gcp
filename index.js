@@ -9,13 +9,13 @@ async function run() {
 
         // Resolve absolute path
         workdir = path.resolve(workdir);
-        core.info(`📂 Workdir provided: ${workdir}`);
+        console.log(`📂 Workdir provided: ${workdir}`);
 
         // Print current working directory before changing
-        core.info(`🔍 Current directory: ${process.cwd()}`);
-        core.info("📁 Listing current directory contents:");
+        console.log(`🔍 Current directory: ${process.cwd()}`);
+        console.log("📁 Listing current directory contents:");
         fs.readdirSync(process.cwd()).forEach(file => {
-            core.info(`  📄 ${file}`);
+            console.log(`  📄 ${file}`);
         });
 
         // Ensure directory exists
@@ -25,18 +25,18 @@ async function run() {
 
         // Change to working directory
         process.chdir(workdir);
-        core.info(`✅ Changed to workdir: ${workdir}`);
+        console.log(`✅ Changed to workdir: ${workdir}`);
 
         // Print new working directory contents
-        core.info("📁 Listing workdir contents:");
+        console.log("📁 Listing workdir contents:");
         fs.readdirSync(workdir).forEach(file => {
-            core.info(`  📄 ${file}`);
+            console.log(`  📄 ${file}`);
         });
 
         // Ensure Terraform can access the GCP credentials
         const gcpCredentialsPath = "/app/gcp-credentials.json";
         if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-            core.info(`🔑 Writing GCP credentials to ${gcpCredentialsPath}`);
+            console.log(`🔑 Writing GCP credentials to ${gcpCredentialsPath}`);
             fs.writeFileSync(gcpCredentialsPath, process.env.GOOGLE_APPLICATION_CREDENTIALS);
             process.env.GOOGLE_APPLICATION_CREDENTIALS = gcpCredentialsPath; // Ensure it's set correctly
         } else {
@@ -44,11 +44,11 @@ async function run() {
         }
 
         // Ensure Terraform Init works
-        core.info("🏗 Running Terraform Init...");
+        console.log("🏗 Running Terraform Init...");
         await exec.exec('terraform init');
 
         // Run Terraform Plan
-        core.info("📊 Running Terraform Plan...");
+        console.log("📊 Running Terraform Plan...");
         await exec.exec('terraform plan -out=tfplan');
 
     } catch (error) {
