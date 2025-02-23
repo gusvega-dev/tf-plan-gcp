@@ -3,9 +3,8 @@ set -e  # Exit on error
 
 WORKDIR=${1:-"."}  # Default to the current directory if no input is given
 
-cd "$WORKDIR"
-
 echo "📂 Working Directory: $WORKDIR"
+cd "$WORKDIR"
 ls -la $WORKDIR  # List files to check if Terraform config exists
 
 if [ ! -d "$WORKDIR" ]; then
