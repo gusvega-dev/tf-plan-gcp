@@ -1,4 +1,4 @@
-name: Publish to GHCR
+name: Publish GitHub Action
 
 on:
   push:
@@ -9,20 +9,20 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Log in to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+      - name: Install Dependencies
+        run: npm install
 
-      - name: Build and Push Docker Image
-        env:
-          IMAGE_NAME: ghcr.io/gusvega-dev/tf-plan-gcp
+      - name: Build GitHub Action
+        run: npm run build || echo "No build step required"
+
+      - name: Commit & Push Changes
         run: |
-          docker build -t $IMAGE_NAME:latest .
-          docker tag $IMAGE_NAME:latest $IMAGE_NAME:latest
-          docker push $IMAGE_NAME:latest
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add .
+          git commit -m "Updated GitHub Action" || echo "No changes to commit"
+          git push

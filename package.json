@@ -4,7 +4,8 @@
     "description": "GitHub Action for Terraform Plan on GCP",
     "main": "index.js",
     "dependencies": {
-      "@actions/core": "^1.10.0"
+      "@actions/core": "^1.10.0",
+      "@actions/exec": "^1.1.0"
     }
   }
   
