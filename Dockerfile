@@ -1,4 +1,4 @@
-FROM node:20  # Use Node.js runtime
+FROM node:20
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y wget unzip
