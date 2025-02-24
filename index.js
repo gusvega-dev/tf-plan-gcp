@@ -8,7 +8,7 @@ async function run() {
         let workdir = core.getInput('workdir') || '.';
 
         // Resolve absolute path
-        workdir = path.resolve(workdir);
+        // workdir = path.resolve(workdir);
         console.log(`📂 Workdir provided: ${workdir}`);
 
         // Print current working directory before changing
