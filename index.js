@@ -7,6 +7,10 @@ async function run() {
     try {
         let workdir = core.getInput('workdir') || '.';
 
+        // Print contents of /app
+        console.log("🔍 Checking contents of /app:");
+        fs.readdirSync("/app").forEach(file => console.log(`  📄 ${file}`));
+
         // Resolve absolute path
         // workdir = path.resolve(workdir);
         console.log(`📂 Workdir provided: ${workdir}`);
