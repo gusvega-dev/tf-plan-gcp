@@ -1,14 +1,10 @@
 {
-    "name": "tf-plan-gcp",
-    "version": "1.0.0",
-    "description": "GitHub Action for Terraform Plan",
-    "main": "index.js",
-    "scripts": {
-        "test": "echo 'No tests defined'"
-    },
-    "dependencies": {
-      "@actions/core": "^1.10.0",
-      "@actions/exec": "^1.1.0"
-    }
+  "name": "tf-plan-action",
+  "version": "1.0.0",
+  "description": "GitHub Action for fast Terraform Plan execution",
+  "main": "index.js",
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/exec": "^1.1.1"
   }
-  
+}

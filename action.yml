@@ -1,6 +1,6 @@
 name: "Terraform Plan Action"
-description: "A paid GitHub Action for Terraform Plan"
-author: "Your Org"
+description: "Executes Terraform Plan quickly"
+author: "gusvega.dev"
 
 inputs:
   workdir:
@@ -10,8 +10,8 @@ inputs:
 
 outputs:
   plan_status:
-    description: "Status of Terraform Plan execution"
+    description: "Terraform Plan execution status"
 
 runs:
-  using: "docker"
-  image: "docker://ghcr.io/gusvega-dev/tf-plan-gcp:latest"
+  using: "node20"
+  main: "index.js"
