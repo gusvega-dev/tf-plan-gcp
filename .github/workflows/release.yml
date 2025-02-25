@@ -24,6 +24,14 @@ jobs:
       - name: Log in to GitHub Container Registry (GHCR)
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
+      - name: Set Version Variable
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          else
+            echo "VERSION=v1.0.0" >> $GITHUB_ENV
+          fi
+
       - name: Build and Tag Docker Image
         env:
           IMAGE_NAME: ghcr.io/gusvega-dev/tf-plan-gcp
