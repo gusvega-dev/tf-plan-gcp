@@ -1,14 +1,12 @@
 const core = require('@actions/core');
-const exec = require('@actions/exec');
 const fs = require('fs');
 const path = require('path');
+const exec = require('@actions/exec');
 
 async function run() {
     try {
-        // Get workdir input (user-provided path inside their repo)
         let workdir = core.getInput('workdir') || '.';
-        workdir = path.join('/github/workspace', workdir); // Ensure absolute path
-
+        workdir = path.join('/github/workspace', workdir);
         console.log(`📂 Workdir provided: ${workdir}`);
 
         // Ensure directory exists
@@ -24,19 +22,26 @@ async function run() {
         const gcpCredentialsPath = "/github/workspace/gcp-credentials.json";
         if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
             try {
-                console.log(`🔑 Writing GCP credentials to ${gcpCredentialsPath}`);
+                console.log("🔑 Processing GOOGLE_APPLICATION_CREDENTIALS...");
+
                 let credentials = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-        
-                // Check if the credentials are base64 encoded
+
+                // Check if credentials are base64-encoded (instead of raw JSON)
                 if (!credentials.trim().startsWith("{")) {
                     console.log("🔍 Detected base64-encoded credentials. Decoding...");
                     credentials = Buffer.from(credentials, "base64").toString("utf-8");
                 }
-        
+
+                // Write JSON credentials to a file
                 fs.writeFileSync(gcpCredentialsPath, credentials);
+                console.log(`✅ GCP credentials successfully written to ${gcpCredentialsPath}`);
+
+                // Set the correct environment variable for Terraform
                 process.env.GOOGLE_APPLICATION_CREDENTIALS = gcpCredentialsPath;
+                console.log(`🌍 GOOGLE_APPLICATION_CREDENTIALS is now set to: ${gcpCredentialsPath}`);
             } catch (error) {
                 core.setFailed(`❌ Error processing GCP credentials: ${error.message}`);
+                return;
             }
         } else {
             core.warning("⚠️ GOOGLE_APPLICATION_CREDENTIALS is not set.");
