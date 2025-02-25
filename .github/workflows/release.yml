@@ -5,6 +5,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to tag (e.g., v1.0.0)"
+        required: true
+        default: "v1.0.0"
 
 jobs:
   publish:
@@ -22,18 +27,24 @@ jobs:
       - name: Build and Tag Docker Image
         env:
           IMAGE_NAME: ghcr.io/gusvega-dev/tf-plan-gcp
+          VERSION: ${{ github.event.inputs.version }}
         run: |
           docker build -t $IMAGE_NAME:latest .
-          docker tag $IMAGE_NAME:latest $IMAGE_NAME:$(date +'%Y%m%d%H%M%S')
+          docker tag $IMAGE_NAME:latest $IMAGE_NAME:$VERSION
 
       - name: Push Docker Image to GHCR
         env:
           IMAGE_NAME: ghcr.io/gusvega-dev/tf-plan-gcp
+          VERSION: ${{ github.event.inputs.version }}
         run: |
           docker push $IMAGE_NAME:latest
-          docker push $IMAGE_NAME:$(date +'%Y%m%d%H%M%S')
+          docker push $IMAGE_NAME:$VERSION
 
-      - name: Create and Push GitHub Tag (Latest)
+      - name: Create and Push GitHub Tag
+        env:
+          VERSION: ${{ github.event.inputs.version }}
         run: |
+          git tag -f $VERSION
+          git push origin -f $VERSION
           git tag -f latest
           git push origin -f latest
