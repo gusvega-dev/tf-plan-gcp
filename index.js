@@ -9,16 +9,14 @@ async function run() {
         workdir = path.join('/github/workspace', workdir);
         console.log(`📂 Workdir provided: ${workdir}`);
 
-        // Ensure directory exists
         if (!fs.existsSync(workdir)) {
             throw new Error(`❌ Error: Specified workdir '${workdir}' does not exist!`);
         }
 
-        // Change to Terraform directory
         process.chdir(workdir);
         console.log(`✅ Changed to workdir: ${workdir}`);
 
-        // Handle Google Cloud Credentials
+        // Handle GCP Credentials
         const gcpCredentialsPath = "/github/workspace/gcp-credentials.json";
         if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
             try {
@@ -32,9 +30,7 @@ async function run() {
 
                 fs.writeFileSync(gcpCredentialsPath, credentials);
                 console.log(`✅ GCP credentials successfully written to ${gcpCredentialsPath}`);
-
                 process.env.GOOGLE_APPLICATION_CREDENTIALS = gcpCredentialsPath;
-                console.log(`🌍 GOOGLE_APPLICATION_CREDENTIALS is now set to: ${gcpCredentialsPath}`);
             } catch (error) {
                 core.setFailed(`❌ Error processing GCP credentials: ${error.message}`);
                 return;
@@ -77,41 +73,43 @@ function formatTerraformPlan(planOutput) {
     let currentResource = null;
 
     for (const line of lines) {
-        if (line.includes("Terraform will perform the following actions:")) {
+        const trimmedLine = line.trim();
+
+        if (trimmedLine.includes("Terraform will perform the following actions:")) {
             capturingResource = true;
             continue;
         }
-        if (line.includes("Changes to Outputs:")) {
+        if (trimmedLine.includes("Changes to Outputs:")) {
             capturingOutputs = true;
             capturingResource = false;
             continue;
         }
-        if (line.match(/^\s*Plan:/)) {
-            actionSummary = `\n${line.trim()}`;
+        if (trimmedLine.startsWith("Plan:")) {
+            actionSummary = `\n${trimmedLine}`;
             capturingResource = false;
             capturingOutputs = false;
             continue;
         }
 
         if (capturingResource) {
-            if (line.startsWith("  # ")) {
+            if (trimmedLine.startsWith("#")) {
                 if (currentResource) {
                     if (currentResource.action === "+") createdResources.push(currentResource);
                     else if (currentResource.action === "~") changedResources.push(currentResource);
                     else if (currentResource.action === "-") destroyedResources.push(currentResource);
                 }
 
-                let resourceName = line.replace("  # ", "").split(" ")[0].trim();
+                let resourceName = trimmedLine.split(" ")[1].trim();
                 currentResource = { name: resourceName, attributes: [], action: "+" };
-            } else if (line.trim().startsWith("+")) {
+            } else if (trimmedLine.startsWith("+") || trimmedLine.startsWith("~") || trimmedLine.startsWith("-")) {
                 if (currentResource) {
-                    currentResource.attributes.push(line.replace("+ ", "").trim());
+                    currentResource.attributes.push(trimmedLine);
                 }
             }
         }
 
-        if (capturingOutputs && line.trim().startsWith("+")) {
-            outputs.push(line.replace("+ ", "").trim());
+        if (capturingOutputs && trimmedLine.startsWith("+")) {
+            outputs.push(trimmedLine.replace("+ ", "").trim());
         }
     }
 
