@@ -16,29 +16,6 @@ async function run() {
         process.chdir(workdir);
         console.log(`✅ Changed to workdir: ${workdir}`);
 
-        // Handle GCP Credentials
-        const gcpCredentialsPath = "/github/workspace/gcp-credentials.json";
-        if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-            try {
-                console.log("🔑 Processing GOOGLE_APPLICATION_CREDENTIALS...");
-                let credentials = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-
-                if (!credentials.trim().startsWith("{")) {
-                    console.log("🔍 Detected base64-encoded credentials. Decoding...");
-                    credentials = Buffer.from(credentials, "base64").toString("utf-8");
-                }
-
-                fs.writeFileSync(gcpCredentialsPath, credentials);
-                console.log(`✅ GCP credentials successfully written to ${gcpCredentialsPath}`);
-                process.env.GOOGLE_APPLICATION_CREDENTIALS = gcpCredentialsPath;
-            } catch (error) {
-                core.setFailed(`❌ Error processing GCP credentials: ${error.message}`);
-                return;
-            }
-        } else {
-            core.warning("⚠️ GOOGLE_APPLICATION_CREDENTIALS is not set.");
-        }
-
         console.log("::group::🏗 Running Terraform Init & Plan");
         await exec.exec('terraform init -input=false');
         await exec.exec('terraform plan -out=tfplan');
@@ -55,120 +32,13 @@ async function run() {
         await exec.exec('terraform show -json tfplan', [], options);
         console.log("::endgroup::");
 
-        // Parse JSON and format the output
-        const formattedOutput = formatTerraformJson(terraformJsonOutput);
-        console.log(formattedOutput);
+        // ✅ Just print the raw JSON output to verify
+        console.log("📜 Terraform JSON Output:");
+        console.log(terraformJsonOutput);
 
-        core.setOutput("plan_status", "success");
     } catch (error) {
         core.setFailed(`Terraform Plan failed: ${error.message}`);
     }
-}
-
-function formatTerraformJson(jsonOutput) {
-    let plan;
-    try {
-        plan = JSON.parse(jsonOutput);
-    } catch (error) {
-        return `❌ Error parsing Terraform JSON output: ${error.message}`;
-    }
-
-    if (!plan || !plan.resource_changes) {
-        return "✅ No changes detected.";
-    }
-
-    let formatted = "\nTERRAFORM PLAN SUMMARY\n";
-    formatted += "----------------------\n";
-
-    const createdResources = [];
-    const changedResources = [];
-    const destroyedResources = [];
-    const outputs = [];
-
-    // Extract resource changes
-    plan.resource_changes.forEach(change => {
-        const actions = change.change.actions;
-        const resourceName = `${change.type}.${change.name}`;
-        const attributes = filterValidAttributes(change.change.after || {});
-
-        let resourceDetails = {
-            name: resourceName,
-            attributes: attributes
-        };
-
-        if (actions.includes("create")) {
-            createdResources.push(resourceDetails);
-        } else if (actions.includes("update")) {
-            changedResources.push(resourceDetails);
-        } else if (actions.includes("delete")) {
-            destroyedResources.push(resourceDetails);
-        }
-    });
-
-    // Extract output changes
-    if (plan.planned_values && plan.planned_values.outputs) {
-        Object.entries(plan.planned_values.outputs).forEach(([key, value]) => {
-            outputs.push(`${key}: ${value.value !== undefined ? value.value : "(unknown value)"}`);
-        });
-    }
-
-    // ✅ Build formatted output
-    if (createdResources.length > 0) {
-        formatted += "::group::Resources to be Created\n";
-        createdResources.forEach(resource => {
-            formatted += `::group::${resource.name}\n`;
-            Object.entries(resource.attributes).forEach(([key, value]) => {
-                formatted += `  ${key}: ${value}\n`;
-            });
-            formatted += "::endgroup::\n";
-        });
-        formatted += "::endgroup::\n\n";
-    }
-
-    if (changedResources.length > 0) {
-        formatted += "::group::Resources to be Updated\n";
-        changedResources.forEach(resource => {
-            formatted += `::group::${resource.name}\n`;
-            Object.entries(resource.attributes).forEach(([key, value]) => {
-                formatted += `  ${key}: ${value}\n`;
-            });
-            formatted += "::endgroup::\n";
-        });
-        formatted += "::endgroup::\n\n";
-    }
-
-    if (destroyedResources.length > 0) {
-        formatted += "::group::Resources to be Destroyed\n";
-        destroyedResources.forEach(resource => {
-            formatted += `  - ${resource.name}\n`;
-        });
-        formatted += "::endgroup::\n\n";
-    }
-
-    if (outputs.length > 0) {
-        formatted += "::group::Terraform Outputs\n";
-        outputs.forEach(output => {
-            formatted += `  ${output}\n`;
-        });
-        formatted += "::endgroup::\n\n";
-    }
-
-    return formatted || "✅ No changes detected.";
-}
-
-// ✅ Filters out null values and expands objects properly
-function filterValidAttributes(attributes) {
-    let filtered = {};
-    for (const [key, value] of Object.entries(attributes)) {
-        if (value === null || value === undefined) continue; // Skip null values
-
-        if (typeof value === "object" && !Array.isArray(value)) {
-            filtered[key] = JSON.stringify(value, null, 2); // Convert objects to readable JSON
-        } else {
-            filtered[key] = value;
-        }
-    }
-    return filtered;
 }
 
 run();
