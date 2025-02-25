@@ -39,13 +39,12 @@ async function run() {
             core.warning("⚠️ GOOGLE_APPLICATION_CREDENTIALS is not set.");
         }
 
-        console.log("🏗 Running Terraform Init...");
+        console.log("::group::🏗 Running Terraform Init & Plan");
         await exec.exec('terraform init -input=false');
-
-        console.log("📊 Running Terraform Plan...");
         await exec.exec('terraform plan -out=tfplan');
+        console.log("::endgroup::");
 
-        console.log("📄 Converting Terraform Plan to JSON...");
+        console.log("::group::📄 Converting Terraform Plan to JSON");
         let terraformJsonOutput = "";
         const options = {
             listeners: {
@@ -54,6 +53,7 @@ async function run() {
             }
         };
         await exec.exec('terraform show -json tfplan', [], options);
+        console.log("::endgroup::");
 
         // Parse JSON and format the output
         const formattedOutput = formatTerraformJson(terraformJsonOutput);
@@ -89,7 +89,7 @@ function formatTerraformJson(jsonOutput) {
     plan.resource_changes.forEach(change => {
         const actions = change.change.actions;
         const resourceName = `${change.type}.${change.name}`;
-        const attributes = change.change.after || {};
+        const attributes = filterValidAttributes(change.change.after || {});
 
         let resourceDetails = {
             name: resourceName,
@@ -108,7 +108,7 @@ function formatTerraformJson(jsonOutput) {
     // Extract output changes
     if (plan.planned_values && plan.planned_values.outputs) {
         Object.entries(plan.planned_values.outputs).forEach(([key, value]) => {
-            outputs.push(`${key}: ${value.value}`);
+            outputs.push(`${key}: ${value.value !== undefined ? value.value : "(unknown value)"}`);
         });
     }
 
@@ -154,6 +154,21 @@ function formatTerraformJson(jsonOutput) {
     }
 
     return formatted || "✅ No changes detected.";
+}
+
+// ✅ Filters out null values and expands objects properly
+function filterValidAttributes(attributes) {
+    let filtered = {};
+    for (const [key, value] of Object.entries(attributes)) {
+        if (value === null || value === undefined) continue; // Skip null values
+
+        if (typeof value === "object" && !Array.isArray(value)) {
+            filtered[key] = JSON.stringify(value, null, 2); // Convert objects to readable JSON
+        } else {
+            filtered[key] = value;
+        }
+    }
+    return filtered;
 }
 
 run();
