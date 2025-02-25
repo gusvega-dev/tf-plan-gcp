@@ -75,6 +75,13 @@ function formatTerraformPlan(planOutput) {
     for (const line of lines) {
         const trimmedLine = line.trim();
 
+        // Capture "Plan: X to add, Y to change, Z to destroy"
+        if (trimmedLine.match(/^Plan:/)) {
+            actionSummary = `\n${trimmedLine}`;
+            continue;
+        }
+
+        // Start capturing resources
         if (trimmedLine.includes("Terraform will perform the following actions:")) {
             capturingResource = true;
             continue;
@@ -84,45 +91,53 @@ function formatTerraformPlan(planOutput) {
             capturingResource = false;
             continue;
         }
-        if (trimmedLine.startsWith("Plan:")) {
-            actionSummary = `\n${trimmedLine}`;
-            capturingResource = false;
-            capturingOutputs = false;
+
+        // Detect resource being added, changed, or destroyed
+        if (capturingResource && trimmedLine.startsWith("#")) {
+            if (currentResource) {
+                // Store the previously parsed resource
+                if (currentResource.action === "+") createdResources.push(currentResource);
+                else if (currentResource.action === "~") changedResources.push(currentResource);
+                else if (currentResource.action === "-") destroyedResources.push(currentResource);
+            }
+
+            // Extract resource name and action
+            let parts = trimmedLine.split(" ");
+            let resourceName = parts[1].trim();
+            let action = parts.includes("will be created") ? "+" :
+                         parts.includes("will be updated") ? "~" :
+                         parts.includes("will be destroyed") ? "-" : "?";
+
+            currentResource = { name: resourceName, attributes: [], action: action };
             continue;
         }
 
-        if (capturingResource) {
-            if (trimmedLine.startsWith("#")) {
-                if (currentResource) {
-                    if (currentResource.action === "+") createdResources.push(currentResource);
-                    else if (currentResource.action === "~") changedResources.push(currentResource);
-                    else if (currentResource.action === "-") destroyedResources.push(currentResource);
-                }
-
-                let resourceName = trimmedLine.split(" ")[1].trim();
-                currentResource = { name: resourceName, attributes: [], action: "+" };
-            } else if (trimmedLine.startsWith("+") || trimmedLine.startsWith("~") || trimmedLine.startsWith("-")) {
-                if (currentResource) {
-                    currentResource.attributes.push(trimmedLine);
-                }
-            }
+        // Capture attributes inside each resource block
+        if (currentResource && (trimmedLine.startsWith("+") || trimmedLine.startsWith("~") || trimmedLine.startsWith("-"))) {
+            currentResource.attributes.push(trimmedLine);
+            continue;
         }
 
+        // Capture output changes
         if (capturingOutputs && trimmedLine.startsWith("+")) {
             outputs.push(trimmedLine.replace("+ ", "").trim());
+            continue;
         }
     }
 
+    // Add the last parsed resource
     if (currentResource) {
         if (currentResource.action === "+") createdResources.push(currentResource);
         else if (currentResource.action === "~") changedResources.push(currentResource);
         else if (currentResource.action === "-") destroyedResources.push(currentResource);
     }
 
+    // ✅ Build formatted output
     let formatted = "\nTERRAFORM PLAN SUMMARY\n";
     formatted += "----------------------\n";
     formatted += actionSummary + "\n\n";
 
+    // 🏗️ Created Resources
     if (createdResources.length > 0) {
         formatted += "::group::Resources to be Created\n";
         createdResources.forEach(resource => {
@@ -135,6 +150,7 @@ function formatTerraformPlan(planOutput) {
         formatted += "::endgroup::\n\n";
     }
 
+    // 🔄 Updated Resources
     if (changedResources.length > 0) {
         formatted += "::group::Resources to be Updated\n";
         changedResources.forEach(resource => {
@@ -147,6 +163,7 @@ function formatTerraformPlan(planOutput) {
         formatted += "::endgroup::\n\n";
     }
 
+    // ❌ Destroyed Resources
     if (destroyedResources.length > 0) {
         formatted += "::group::Resources to be Destroyed\n";
         destroyedResources.forEach(resource => {
@@ -155,6 +172,7 @@ function formatTerraformPlan(planOutput) {
         formatted += "::endgroup::\n\n";
     }
 
+    // 📌 Terraform Outputs
     if (outputs.length > 0) {
         formatted += "::group::Terraform Outputs\n";
         outputs.forEach(output => {
