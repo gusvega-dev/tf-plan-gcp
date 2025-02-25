@@ -85,29 +85,42 @@ function formatTerraformJson(jsonOutput) {
     const destroyedResources = [];
     const outputs = [];
 
+    // Extract resource changes
     plan.resource_changes.forEach(change => {
-        const action = change.change.actions;
+        const actions = change.change.actions;
         const resourceName = `${change.type}.${change.name}`;
+        const attributes = change.change.after || {};
 
-        if (action.includes("create")) {
-            createdResources.push(resourceName);
-        } else if (action.includes("update")) {
-            changedResources.push(resourceName);
-        } else if (action.includes("delete")) {
-            destroyedResources.push(resourceName);
+        let resourceDetails = {
+            name: resourceName,
+            attributes: attributes
+        };
+
+        if (actions.includes("create")) {
+            createdResources.push(resourceDetails);
+        } else if (actions.includes("update")) {
+            changedResources.push(resourceDetails);
+        } else if (actions.includes("delete")) {
+            destroyedResources.push(resourceDetails);
         }
     });
 
-    if (plan.output_changes) {
-        Object.keys(plan.output_changes).forEach(outputKey => {
-            outputs.push(`${outputKey}: ${JSON.stringify(plan.output_changes[outputKey])}`);
+    // Extract output changes
+    if (plan.planned_values && plan.planned_values.outputs) {
+        Object.entries(plan.planned_values.outputs).forEach(([key, value]) => {
+            outputs.push(`${key}: ${value.value}`);
         });
     }
 
+    // ✅ Build formatted output
     if (createdResources.length > 0) {
         formatted += "::group::Resources to be Created\n";
         createdResources.forEach(resource => {
-            formatted += `  - ${resource}\n`;
+            formatted += `::group::${resource.name}\n`;
+            Object.entries(resource.attributes).forEach(([key, value]) => {
+                formatted += `  ${key}: ${value}\n`;
+            });
+            formatted += "::endgroup::\n";
         });
         formatted += "::endgroup::\n\n";
     }
@@ -115,7 +128,11 @@ function formatTerraformJson(jsonOutput) {
     if (changedResources.length > 0) {
         formatted += "::group::Resources to be Updated\n";
         changedResources.forEach(resource => {
-            formatted += `  - ${resource}\n`;
+            formatted += `::group::${resource.name}\n`;
+            Object.entries(resource.attributes).forEach(([key, value]) => {
+                formatted += `  ${key}: ${value}\n`;
+            });
+            formatted += "::endgroup::\n";
         });
         formatted += "::endgroup::\n\n";
     }
@@ -123,7 +140,7 @@ function formatTerraformJson(jsonOutput) {
     if (destroyedResources.length > 0) {
         formatted += "::group::Resources to be Destroyed\n";
         destroyedResources.forEach(resource => {
-            formatted += `  - ${resource}\n`;
+            formatted += `  - ${resource.name}\n`;
         });
         formatted += "::endgroup::\n\n";
     }
