@@ -54,19 +54,20 @@ async function run() {
         console.log("::endgroup::");
 
         console.log("::group::📄 Converting Terraform Plan to JSON");
-        let terraformJsonOutput = "";
-        const options = {
-            listeners: {
-                stdout: (data) => { terraformJsonOutput += data.toString(); },
-                stderr: (data) => { terraformJsonOutput += data.toString(); }
-            }
-        };
-        await exec.exec('terraform show -json tfplan', [], options);
+        
+        // Save Terraform JSON output to a file
+        const tfplanJsonFile = "tfplan.json";
+        await exec.exec(`terraform show -json tfplan > ${tfplanJsonFile}`);
         console.log("::endgroup::");
 
-        // ✅ Just print the raw JSON output to verify
-        console.log("📜 Terraform JSON Output:");
-        console.log(terraformJsonOutput);
+        // ✅ Read the file and print properly formatted JSON
+        if (fs.existsSync(tfplanJsonFile)) {
+            const terraformJsonOutput = fs.readFileSync(tfplanJsonFile, "utf8");
+            console.log("📜 Terraform JSON Output:");
+            console.log(JSON.stringify(JSON.parse(terraformJsonOutput), null, 2)); // Pretty-print JSON
+        } else {
+            console.error("❌ Terraform JSON output file not found!");
+        }
     } catch (error) {
         core.setFailed(`Terraform Plan failed: ${error.message}`);
     }
