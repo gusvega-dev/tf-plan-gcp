@@ -23,20 +23,16 @@ async function run() {
         if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
             try {
                 console.log("🔑 Processing GOOGLE_APPLICATION_CREDENTIALS...");
-
                 let credentials = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 
-                // Check if credentials are base64-encoded (instead of raw JSON)
                 if (!credentials.trim().startsWith("{")) {
                     console.log("🔍 Detected base64-encoded credentials. Decoding...");
                     credentials = Buffer.from(credentials, "base64").toString("utf-8");
                 }
 
-                // Write JSON credentials to a file
                 fs.writeFileSync(gcpCredentialsPath, credentials);
                 console.log(`✅ GCP credentials successfully written to ${gcpCredentialsPath}`);
 
-                // Set the correct environment variable for Terraform
                 process.env.GOOGLE_APPLICATION_CREDENTIALS = gcpCredentialsPath;
                 console.log(`🌍 GOOGLE_APPLICATION_CREDENTIALS is now set to: ${gcpCredentialsPath}`);
             } catch (error) {
@@ -47,7 +43,6 @@ async function run() {
             core.warning("⚠️ GOOGLE_APPLICATION_CREDENTIALS is not set.");
         }
 
-        // Run Terraform Commands
         console.log("🏗 Running Terraform Init...");
         await exec.exec('terraform init -input=false');
 
@@ -61,7 +56,6 @@ async function run() {
         };
         await exec.exec('terraform plan -out=tfplan', [], options);
 
-        // Process and format the Terraform output
         const formattedOutput = formatTerraformPlan(terraformPlanOutput);
         console.log(formattedOutput);
 
@@ -80,7 +74,7 @@ function formatTerraformPlan(planOutput) {
     let actionSummary = "";
     let capturingResource = false;
     let capturingOutputs = false;
-    let currentResource = {};
+    let currentResource = null;
 
     for (const line of lines) {
         if (line.includes("Terraform will perform the following actions:")) {
@@ -99,86 +93,76 @@ function formatTerraformPlan(planOutput) {
             continue;
         }
 
-        // Capture resources being created (+), updated (~), or destroyed (-)
         if (capturingResource) {
             if (line.startsWith("  # ")) {
-                if (Object.keys(currentResource).length > 0) {
+                if (currentResource) {
                     if (currentResource.action === "+") createdResources.push(currentResource);
                     else if (currentResource.action === "~") changedResources.push(currentResource);
                     else if (currentResource.action === "-") destroyedResources.push(currentResource);
                 }
-                currentResource = { name: line.replace("  # ", "").trim(), attributes: [], action: "" };
-            } else if (line.startsWith("  + ")) {
-                currentResource.action = "+";
-            } else if (line.startsWith("  ~ ")) {
-                currentResource.action = "~";
-            } else if (line.startsWith("  - ")) {
-                currentResource.action = "-";
-            } else if (line.startsWith("      + ") || line.startsWith("      ~ ") || line.startsWith("      - ")) {
-                currentResource.attributes.push(line.replace("      ", "").trim());
+
+                let resourceName = line.replace("  # ", "").split(" ")[0].trim();
+                currentResource = { name: resourceName, attributes: [], action: "+" };
+            } else if (line.trim().startsWith("+")) {
+                if (currentResource) {
+                    currentResource.attributes.push(line.replace("+ ", "").trim());
+                }
             }
         }
 
-        // Capture output changes
-        if (capturingOutputs && line.startsWith("  + ")) {
-            outputs.push(line.replace("  + ", "").trim());
+        if (capturingOutputs && line.trim().startsWith("+")) {
+            outputs.push(line.replace("+ ", "").trim());
         }
     }
 
-    // Finalize last resource
-    if (Object.keys(currentResource).length > 0) {
+    if (currentResource) {
         if (currentResource.action === "+") createdResources.push(currentResource);
         else if (currentResource.action === "~") changedResources.push(currentResource);
         else if (currentResource.action === "-") destroyedResources.push(currentResource);
     }
 
-    // Build formatted output with collapsible sections and nested collapsible resources
     let formatted = "\nTERRAFORM PLAN SUMMARY\n";
     formatted += "----------------------\n";
     formatted += actionSummary + "\n\n";
 
     if (createdResources.length > 0) {
         formatted += "::group::Resources to be Created\n";
-        formatted += "------------------------------\n";
         createdResources.forEach(resource => {
             formatted += `::group::${resource.name}\n`;
             resource.attributes.forEach(attr => {
                 formatted += `  ${attr}\n`;
             });
-            formatted += "::endgroup::\n"; // Closes individual resource collapsibility
+            formatted += "::endgroup::\n";
         });
-        formatted += "::endgroup::\n\n"; // Closes "Resources to be Created" collapsibility
+        formatted += "::endgroup::\n\n";
     }
 
     if (changedResources.length > 0) {
         formatted += "::group::Resources to be Updated\n";
-        formatted += "------------------------------\n";
         changedResources.forEach(resource => {
             formatted += `::group::${resource.name}\n`;
             resource.attributes.forEach(attr => {
                 formatted += `  ${attr}\n`;
             });
-            formatted += "::endgroup::\n"; // Closes individual resource collapsibility
+            formatted += "::endgroup::\n";
         });
-        formatted += "::endgroup::\n\n"; // Closes "Resources to be Updated" collapsibility
+        formatted += "::endgroup::\n\n";
     }
 
     if (destroyedResources.length > 0) {
         formatted += "::group::Resources to be Destroyed\n";
-        formatted += "------------------------------\n";
         destroyedResources.forEach(resource => {
             formatted += `  - ${resource.name}\n`;
         });
-        formatted += "::endgroup::\n\n"; // Closes "Resources to be Destroyed" collapsibility
+        formatted += "::endgroup::\n\n";
     }
 
     if (outputs.length > 0) {
         formatted += "::group::Terraform Outputs\n";
-        formatted += "-------------------------\n";
         outputs.forEach(output => {
             formatted += `  ${output}\n`;
         });
-        formatted += "::endgroup::\n\n"; // Closes "Terraform Outputs" collapsibility
+        formatted += "::endgroup::\n\n";
     }
 
     return formatted || "No changes detected.";
