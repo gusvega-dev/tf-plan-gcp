@@ -1,4 +1,4 @@
-name: Publish JavaScript GitHub Action
+name: Publish Containerized GitHub Action to GHCR
 
 on:
   push:
@@ -11,17 +11,29 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: write  # Required for pushing to GHCR
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Log in to GitHub Container Registry (GHCR)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
-      - name: Build Action
-        run: npm run build || echo "No build step needed"
+      - name: Build and Tag Docker Image
+        env:
+          IMAGE_NAME: ghcr.io/gusvega-dev/tf-plan-gcp
+        run: |
+          docker build -t $IMAGE_NAME:latest .
+          docker tag $IMAGE_NAME:latest $IMAGE_NAME:$(date +'%Y%m%d%H%M%S')
 
-      - name: Create and Push Tag (Latest)
+      - name: Push Docker Image to GHCR
+        env:
+          IMAGE_NAME: ghcr.io/gusvega-dev/tf-plan-gcp
+        run: |
+          docker push $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:$(date +'%Y%m%d%H%M%S')
+
+      - name: Create and Push GitHub Tag (Latest)
         run: |
           git tag -f latest
           git push origin -f latest

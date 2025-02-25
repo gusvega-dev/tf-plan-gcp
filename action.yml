@@ -1,6 +1,6 @@
 name: "Terraform Plan Action"
-description: "Executes Terraform Plan quickly"
-author: "gusvega.dev"
+description: "Executes Terraform Plan inside a container"
+author: "gusvega"
 
 inputs:
   workdir:
@@ -13,5 +13,5 @@ outputs:
     description: "Terraform Plan execution status"
 
 runs:
-  using: "node20"
-  main: "index.js"
+  using: "docker"
+  image: "docker://ghcr.io/gusvega-dev/tf-plan-gcp:latest"
