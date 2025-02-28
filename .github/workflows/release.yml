@@ -47,8 +47,6 @@ jobs:
           docker push $IMAGE_NAME:$VERSION
 
       - name: Create and Push GitHub Tag
-        env:
-          VERSION: ${{ github.event.inputs.version }}
         run: |
           git tag -f $VERSION
           git push origin -f $VERSION
