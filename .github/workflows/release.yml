@@ -8,7 +8,7 @@ on:
 
 env:
   IMAGE_NAME: ghcr.io/gusvega-dev/tf-plan-gcp
-  VERSION: 'v1.0.1'
+  VERSION: 'v1.0.0'
 
 jobs:
   publish:
@@ -30,12 +30,9 @@ jobs:
 
       - name: Push Docker Image to GHCR
         run: |
-          # docker push $IMAGE_NAME:latest
           docker push $IMAGE_NAME:$VERSION
 
       - name: Create and Push GitHub Tag
         run: |
           git tag -f $VERSION
           git push origin -f $VERSION
-          # git tag -f latest
-          # git push origin -f latest
