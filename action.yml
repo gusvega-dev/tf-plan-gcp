@@ -14,4 +14,4 @@ outputs:
 
 runs:
   using: "docker"
-  image: "docker://ghcr.io/gusvega-dev/tf-plan-gcp:latest"
+  image: "docker://ghcr.io/gusvega-dev/tf-plan-gcp:v1.0.0"
