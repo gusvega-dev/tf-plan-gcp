@@ -5,15 +5,10 @@ on:
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to tag (e.g., v1.0.0)"
-        required: true
-        default: "v1.0.0"
 
 env:
   IMAGE_NAME: ghcr.io/gusvega-dev/tf-plan-gcp
-  VERSION: ${{ github.event.inputs.version || 'v1.0.0' }}
+  VERSION: 'v1.0.1'
 
 jobs:
   publish:
@@ -28,27 +23,19 @@ jobs:
       - name: Log in to GitHub Container Registry (GHCR)
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
-      # - name: Set Version Variable
-      #   run: |
-      #     if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
-      #       echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-      #     else
-      #       echo "VERSION=v1.0.0" >> $GITHUB_ENV
-      #     fi
-
       - name: Build and Tag Docker Image
         run: |
-          docker build -t $IMAGE_NAME:latest .
-          docker tag $IMAGE_NAME:latest $IMAGE_NAME:$VERSION
+          docker build -t $IMAGE_NAME:$VERSION .
+          # docker tag $IMAGE_NAME:$VERSION $IMAGE_NAME:$VERSION
 
       - name: Push Docker Image to GHCR
         run: |
-          docker push $IMAGE_NAME:latest
+          # docker push $IMAGE_NAME:latest
           docker push $IMAGE_NAME:$VERSION
 
       - name: Create and Push GitHub Tag
         run: |
           git tag -f $VERSION
           git push origin -f $VERSION
-          git tag -f latest
-          git push origin -f latest
+          # git tag -f latest
+          # git push origin -f latest
