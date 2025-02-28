@@ -7,10 +7,6 @@ inputs:
     description: "Working directory for Terraform"
     required: false
     default: "."
-  version:
-    description: "Version of the container image to use"
-    required: false
-    default: "${{ github.ref_name }}" 
 
 outputs:
   plan_status:
@@ -18,4 +14,4 @@ outputs:
 
 runs:
   using: "docker"
-  image: "docker://ghcr.io/gusvega-dev/tf-plan-gcp:${{ inputs.version }}"
+  image: "docker://ghcr.io/gusvega-dev/tf-plan-gcp:${{ github.ref_name }}"
