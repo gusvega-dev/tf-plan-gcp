@@ -8,14 +8,10 @@ inputs:
     required: false
     default: "."
 
-  version:
-    description: "Version of the container image to use"
-    required: true
-
 outputs:
   plan_status:
     description: "Terraform Plan execution status"
 
 runs:
   using: "docker"
-  image: "docker://ghcr.io/gusvega-dev/tf-plan-gcp:${{ inputs.version }}"
+  image: "docker://ghcr.io/gusvega-dev/tf-plan-gcp:v1.0.1"
