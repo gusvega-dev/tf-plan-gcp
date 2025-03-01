@@ -86,17 +86,17 @@ if (fs.existsSync(jsonOutputPath)) {
     const changes = tfJson.resource_changes || [];
     const changesCount = changes.length;
 
-    // Count each type of action
-    const createCount = changeCategories.create.length;
-    const updateCount = changeCategories.update.length;
-    const deleteCount = changeCategories.delete.length;
-
     // Categorize resources by action type
     const changeCategories = {
         create: [],
         update: [],
         delete: []
     };
+
+    // Count each type of action
+    const createCount = changeCategories.create.length;
+    const updateCount = changeCategories.update.length;
+    const deleteCount = changeCategories.delete.length;
 
     changes.forEach(change => {
         const address = change.address; // Full resource path
@@ -112,7 +112,7 @@ if (fs.existsSync(jsonOutputPath)) {
     // Print formatted changes
     console.log("🔄 Terraform Plan Changes:");
     console.log(`🔍 Found ${changesCount} resource changes. Create: ${createCount}, Update: ${updateCount}, Destroy: ${deleteCount}`);
-    
+
     ["create", "update", "delete"].forEach(action => {
         if (changeCategories[action].length > 0) {
             console.log(`${action.charAt(0).toUpperCase() + action.slice(1)}:`); // Capitalize action
