@@ -53,6 +53,23 @@ GitHub Actions automatically mounts the repository into `/github/workspace` insi
 
 ---
 
+## Example: Repository Structure
+Below is a recommended structure for using this action within a repository:
+```
+repo-root/
+│── .github/
+│   ├── workflows/
+│   │   ├── terraform-plan.yml  # GitHub Action Workflow
+│── terraform/
+│   ├── main.tf                 # Terraform Configuration
+│   ├── variables.tf            # Variables File
+│   ├── outputs.tf              # Outputs File
+│   ├── provider.tf             # Provider Configuration
+│── README.md                   # Documentation
+```
+
+---
+
 ## Example: Full Terraform Workflow
 Here’s a full Terraform CI/CD pipeline using `tf-plan-gcp`:
 
@@ -88,8 +105,9 @@ jobs:
 ## Troubleshooting
 ### Issue: Terraform Plan Fails
 Check the logs for errors:
-1. Check for syntax issues in your Terraform files.
-2. Verify Google Cloud credentials are correctly set in `secrets.GCP_CREDENTIALS`.
+1. Ensure Terraform is initialized (`terraform init`).
+2. Check for syntax issues in your Terraform files.
+3. Verify Google Cloud credentials are correctly set in `secrets.GCP_CREDENTIALS`.
 
 ### Issue: Workdir Not Found
 Make sure:
