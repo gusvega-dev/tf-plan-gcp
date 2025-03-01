@@ -43,13 +43,6 @@ function setupGcpCredentials() {
 }
 
 /**
- * Runs Terraform commands: init and plan.
- */
-const core = require('@actions/core');
-const exec = require('@actions/exec');
-const fs = require('fs');
-
-/**
  * Runs Terraform commands with suppressed output and extracts specific info from JSON.
  */
 async function runTerraform() {
@@ -81,7 +74,6 @@ async function runTerraform() {
 
     core.setOutput("plan_status", "success");
 }
-
 
 /**
  * Main execution function.
