@@ -92,17 +92,17 @@ async function runTerraform() {
             delete: []
         };
     
-        // Function to format attributes with proper indentation
-        function formatAttributes(attributes, indentLevel = 4) {
+        // Function to format attributes with proper indentation and collapsible sections
+        function formatAttributes(attributes, indentLevel = 6) {
             return Object.entries(attributes)
                 .map(([key, value]) => {
                     const indent = " ".repeat(indentLevel); // Create indentation
     
                     if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-                        // ✅ Expand nested objects with proper indentation
-                        return `${indent}- **${key}**:\n${indent}::group::Expand ${key}\n` +
-                            formatAttributes(value, indentLevel + 2) + // Maintain indentation level
-                            `\n${indent}::endgroup::`;
+                        // ✅ Expand nested objects while keeping indentation consistent
+                        return `${indent}- **${key}**:\n${indent}  ::group::Expand ${key}\n` +
+                            formatAttributes(value, indentLevel + 4) + // Maintain proper indentation
+                            `\n${indent}  ::endgroup::`;
                     } else {
                         return `${indent}- **${key}**: ${JSON.stringify(value)}`;
                     }
@@ -116,7 +116,7 @@ async function runTerraform() {
     
             // Extract attributes and format them properly
             const attributes = change.change.after || {};
-            const formattedAttributes = formatAttributes(attributes, 10); // Ensure consistent indentation
+            const formattedAttributes = formatAttributes(attributes, 10); // Ensure uniform indentation
     
             actions.forEach(action => {
                 if (changeCategories[action]) {
@@ -147,12 +147,12 @@ async function runTerraform() {
                 console.log(`${actionLabels[action]}:`);
     
                 changeCategories[action].forEach(resource => {
-                    console.log(`          ▶ ${resource.address}`);
+                    console.log(`        ▶ ${resource.address}`);
     
                     // ✅ Make each resource collapsible using `::group::`
-                    console.log(`          ::group::Details for ${resource.address}`);
+                    console.log(`        ::group::Details for ${resource.address}`);
                     console.log(resource.formattedAttributes); // Properly formatted key-value attributes
-                    console.log("          ::endgroup::");
+                    console.log("        ::endgroup::");
                 });
     
                 console.log(""); // Add empty line for spacing
@@ -166,7 +166,6 @@ async function runTerraform() {
         console.log("⚠️ No Terraform JSON output found.");
         core.setOutput("resources_changed", 0);
     }
-
 
     core.setOutput("plan_status", "success");
 }
