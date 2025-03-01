@@ -92,21 +92,38 @@ async function runTerraform() {
             delete: []
         };
     
+        // Collect markdown-formatted changes for GitHub output
+        let markdownOutput = `## 🔄 Terraform Plan Changes\n`;
+        markdownOutput += `🔍 **Found ${changesCount} resource changes**\n\n`;
+    
         changes.forEach(change => {
             const address = change.address; // Full resource path
             const actions = change.change.actions; // Array of actions (["create"], ["update"], ["delete"])
+            const attributes = JSON.stringify(change.change.after || {}, null, 2); // Get formatted attributes
     
             actions.forEach(action => {
                 if (changeCategories[action]) {
                     changeCategories[action].push(address);
                 }
             });
+    
+            // Generate collapsible section for each resource change
+            markdownOutput += `<details>\n`;
+            markdownOutput += `<summary> **${actions.join(", ").toUpperCase()}** - ${address} </summary>\n\n`;
+            markdownOutput += "```json\n" + attributes + "\n```\n";
+            markdownOutput += `</details>\n\n`;
         });
     
         // ✅ Now, count the number of each type **after** populating the categories
         const createCount = changeCategories.create.length;
         const updateCount = changeCategories.update.length;
         const deleteCount = changeCategories.delete.length;
+    
+        // Append summary counts
+        markdownOutput += `### Summary:\n`;
+        markdownOutput += `- **Create**: ${createCount}\n`;
+        markdownOutput += `- **Update**: ${updateCount}\n`;
+        markdownOutput += `- **Destroy**: ${deleteCount}\n`;
     
         // Print formatted changes
         console.log("🔄 Terraform Plan Changes:");
@@ -122,6 +139,7 @@ async function runTerraform() {
         // Set GitHub Actions outputs
         core.setOutput("resources_changed", changesCount);
         core.setOutput("change_details", JSON.stringify(changeCategories));
+        core.setOutput("formatted_output", markdownOutput); // Markdown output for GitHub Actions
     } else {
         console.log("⚠️ No Terraform JSON output found.");
         core.setOutput("resources_changed", 0);
