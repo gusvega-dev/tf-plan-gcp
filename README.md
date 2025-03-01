@@ -85,61 +85,11 @@ jobs:
 
 ---
 
-## Publishing New Versions
-To publish a new version of this action, run the following workflow:
-
-```yaml
-name: Publish Containerized GitHub Action to GHCR
-
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-
-env:
-  IMAGE_NAME: ghcr.io/gusvega-dev/tf-plan-gcp
-  VERSION: "v1.0.1"
-
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write  # Required for pushing to GHCR
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry (GHCR)
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
-
-      - name: Build and Tag Docker Image
-        run: |
-          docker build -t $IMAGE_NAME:$VERSION .
-
-      - name: Push Docker Image to GHCR
-        run: |
-          docker push $IMAGE_NAME:$VERSION
-
-      - name: Create and Push GitHub Tag
-        run: |
-          git tag -f $VERSION
-          git push origin -f $VERSION
-```
-
-This workflow will:
-- Build and push the container to GitHub Container Registry (GHCR).
-- Automatically tag the release using GitHub Actions.
-
----
-
 ## Troubleshooting
 ### Issue: Terraform Plan Fails
 Check the logs for errors:
-1. Ensure Terraform is initialized (`terraform init`).
-2. Check for syntax issues in your Terraform files.
-3. Verify Google Cloud credentials are correctly set in `secrets.GCP_CREDENTIALS`.
+1. Check for syntax issues in your Terraform files.
+2. Verify Google Cloud credentials are correctly set in `secrets.GCP_CREDENTIALS`.
 
 ### Issue: Workdir Not Found
 Make sure:
