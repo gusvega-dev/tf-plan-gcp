@@ -47,22 +47,33 @@ function setupGcpCredentials() {
  */
 async function runTerraform() {
     console.log("🏗 Running Terraform Init...");
-    await exec.exec('terraform init -input=false', [], { silent: true });
+    await exec.exec('terraform init -input=false', [], { silent: false }); // Show output for debugging
 
     console.log("📊 Running Terraform Plan...");
-    await exec.exec('terraform plan -out=tfplan', [], { silent: true });
+    try {
+        await exec.exec('terraform plan -out=tfplan', [], { silent: false }); // Show output for debugging
+    } catch (error) {
+        core.setFailed(`❌ Terraform Plan failed: ${error.message}`);
+        return;
+    }
+
+    // Check if tfplan file exists before running terraform show
+    if (!fs.existsSync("tfplan")) {
+        core.setFailed("❌ Terraform plan file 'tfplan' was not generated. Check for Terraform errors above.");
+        return;
+    }
 
     // Generate JSON output
     console.log("📝 Converting Terraform plan to JSON...");
     const jsonOutputPath = "/github/workspace/tfplan.json";
 
     try {
-        await exec.exec(`terraform show -json tfplan > ${jsonOutputPath}`, [], { silent: true });
+        await exec.exec(`terraform show -json tfplan > ${jsonOutputPath}`, [], { silent: false });
     } catch (error) {
         core.setFailed(`❌ Failed to generate Terraform JSON output: ${error.message}`);
         return;
     }
-    
+
     // Read and parse the JSON output
     if (fs.existsSync(jsonOutputPath)) {
         const tfJson = JSON.parse(fs.readFileSync(jsonOutputPath, 'utf8'));
