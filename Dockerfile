@@ -3,6 +3,7 @@ FROM node:20
 
 # Set non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive 
+ENV TF_PLUGIN_CACHE_DIR=/root/.terraform.d/plugin-cache
 
 # Install Terraform
 RUN apt-get update && \
@@ -11,17 +12,19 @@ RUN apt-get update && \
     unzip terraform_1.5.6_linux_amd64.zip && \
     mv terraform /usr/local/bin/terraform && \
     chmod +x /usr/local/bin/terraform && \
+    mkdir -p /root/.terraform.d/plugin-cache && \
     rm -rf /var/lib/apt/lists/* terraform_1.5.6_linux_amd64.zip
 
-# Set working directory to where GitHub mounts the user's repository
+# Set working directory
 WORKDIR /github/workspace
 
-# Copy action files (not user files)
+# Copy action files
 COPY . /app
 WORKDIR /app
 
-# Install Node.js dependencies for the action
-RUN npm install
+# Install Node.js dependencies and enable npm cache
+RUN npm install && \
+    npm config set cache /root/.npm
 
-# Set entrypoint
-ENTRYPOINT ["node", "/app/index.js"]
+# Entry point with caching enabled
+ENTRYPOINT ["sh", "-c", "exec node /app/index.js > /proc/1/fd/1 2>/proc/1/fd/2"]
