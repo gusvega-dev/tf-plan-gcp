@@ -78,55 +78,54 @@ async function runTerraform() {
     }
 
     // Read and parse the JSON output
-// Read and parse the JSON output
-if (fs.existsSync(jsonOutputPath)) {
-    const tfJson = JSON.parse(fs.readFileSync(jsonOutputPath, 'utf8'));
-
-    // Extract all resource changes
-    const changes = tfJson.resource_changes || [];
-    const changesCount = changes.length;
-
-    // Categorize resources by action type
-    const changeCategories = {
-        create: [],
-        update: [],
-        delete: []
-    };
-
-    // Count each type of action
-    const createCount = changeCategories.create.length;
-    const updateCount = changeCategories.update.length;
-    const deleteCount = changeCategories.delete.length;
-
-    changes.forEach(change => {
-        const address = change.address; // Full resource path
-        const actions = change.change.actions; // Array of actions (["create"], ["update"], ["delete"])
-
-        actions.forEach(action => {
-            if (changeCategories[action]) {
-                changeCategories[action].push(address);
+    if (fs.existsSync(jsonOutputPath)) {
+        const tfJson = JSON.parse(fs.readFileSync(jsonOutputPath, 'utf8'));
+    
+        // Extract all resource changes
+        const changes = tfJson.resource_changes || [];
+        const changesCount = changes.length;
+    
+        // Categorize resources by action type
+        const changeCategories = {
+            create: [],
+            update: [],
+            delete: []
+        };
+    
+        changes.forEach(change => {
+            const address = change.address; // Full resource path
+            const actions = change.change.actions; // Array of actions (["create"], ["update"], ["delete"])
+    
+            actions.forEach(action => {
+                if (changeCategories[action]) {
+                    changeCategories[action].push(address);
+                }
+            });
+        });
+    
+        // ✅ Now, count the number of each type **after** populating the categories
+        const createCount = changeCategories.create.length;
+        const updateCount = changeCategories.update.length;
+        const deleteCount = changeCategories.delete.length;
+    
+        // Print formatted changes
+        console.log("🔄 Terraform Plan Changes:");
+        console.log(`🔍 Found ${changesCount} resource changes. Create: ${createCount}, Update: ${updateCount}, Destroy: ${deleteCount}`);
+    
+        ["create", "update", "delete"].forEach(action => {
+            if (changeCategories[action].length > 0) {
+                console.log(`${action.charAt(0).toUpperCase() + action.slice(1)}:`); // Capitalize action
+                changeCategories[action].forEach(resource => console.log(`- ${resource}`));
             }
         });
-    });
-
-    // Print formatted changes
-    console.log("🔄 Terraform Plan Changes:");
-    console.log(`🔍 Found ${changesCount} resource changes. Create: ${createCount}, Update: ${updateCount}, Destroy: ${deleteCount}`);
-
-    ["create", "update", "delete"].forEach(action => {
-        if (changeCategories[action].length > 0) {
-            console.log(`${action.charAt(0).toUpperCase() + action.slice(1)}:`); // Capitalize action
-            changeCategories[action].forEach(resource => console.log(`- ${resource}`));
-        }
-    });
-
-    // Set GitHub Actions outputs
-    core.setOutput("resources_changed", changesCount);
-    core.setOutput("change_details", JSON.stringify(changeCategories));
-} else {
-    console.log("⚠️ No Terraform JSON output found.");
-    core.setOutput("resources_changed", 0);
-}
+    
+        // Set GitHub Actions outputs
+        core.setOutput("resources_changed", changesCount);
+        core.setOutput("change_details", JSON.stringify(changeCategories));
+    } else {
+        console.log("⚠️ No Terraform JSON output found.");
+        core.setOutput("resources_changed", 0);
+    }
 
 
     core.setOutput("plan_status", "success");
