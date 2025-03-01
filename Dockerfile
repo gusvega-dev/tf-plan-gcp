@@ -23,5 +23,5 @@ WORKDIR /app
 # Install Node.js dependencies for the action
 RUN npm install
 
-# Set entrypoint and Suppress Docker logs but allow Terraform/Node.js output
-ENTRYPOINT ["sh", "-c", "exec 2>/dev/null; node /app/index.js"]
+# Set entrypoint
+ENTRYPOINT ["node", "/app/index.js"]
