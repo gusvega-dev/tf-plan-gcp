@@ -99,7 +99,7 @@ async function runTerraform() {
             // Extract attributes as key-value pairs
             const attributes = change.change.after || {};
             const formattedAttributes = Object.entries(attributes)
-                .map(([key, value]) => `- **${key}**: ${JSON.stringify(value)}`)
+                .map(([key, value]) => `- ${key}: ${JSON.stringify(value)}`)
                 .join("\n");
     
             actions.forEach(action => {
