@@ -55,8 +55,14 @@ async function runTerraform() {
     // Generate JSON output
     console.log("📝 Converting Terraform plan to JSON...");
     const jsonOutputPath = "/github/workspace/tfplan.json";
-    await exec.exec(`terraform show -json tfplan > ${jsonOutputPath}`, [], { silent: true });
 
+    try {
+        await exec.exec(`terraform show -json tfplan > ${jsonOutputPath}`, [], { silent: true });
+    } catch (error) {
+        core.setFailed(`❌ Failed to generate Terraform JSON output: ${error.message}`);
+        return;
+    }
+    
     // Read and parse the JSON output
     if (fs.existsSync(jsonOutputPath)) {
         const tfJson = JSON.parse(fs.readFileSync(jsonOutputPath, 'utf8'));
