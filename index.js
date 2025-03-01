@@ -131,10 +131,9 @@ async function runTerraform() {
                 console.log(`${actionLabels[action]}:`);
     
                 changeCategories[action].forEach(resource => {
-                    console.log(`▶ ${resource.address}`);
     
                     // ✅ Make each resource collapsible using `::group::`
-                    console.log(`::group::Details for ${resource.address}`);
+                    console.log(`::group::${resource.address}`);
                     console.log(resource.formattedAttributes); // Key-value format instead of JSON
                     console.log("::endgroup::");
                 });
