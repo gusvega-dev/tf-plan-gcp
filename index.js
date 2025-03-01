@@ -131,6 +131,7 @@ async function runTerraform() {
         // Print summary
         console.log("🔄 Terraform Plan Changes:");
         console.log(`🔍 Found ${changesCount} resource changes.`);
+        console.log(" ");
         console.log(`CREATE: ${createCount} | UPDATE: ${updateCount} | DELETE: ${deleteCount}\n`);
     
         // Define display order
