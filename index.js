@@ -92,17 +92,15 @@ async function runTerraform() {
             delete: []
         };
     
-        // Function to format attributes with proper indentation and collapsible sections
+        // Function to format attributes with proper indentation (recursive for nested attributes)
         function formatAttributes(attributes, indentLevel = 6) {
             return Object.entries(attributes)
                 .map(([key, value]) => {
                     const indent = " ".repeat(indentLevel); // Create indentation
-    
+                    
                     if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-                        // ✅ Expand nested objects while keeping indentation consistent
-                        return `${indent}- **${key}**:\n${indent}  ::group::Expand ${key}\n` +
-                            formatAttributes(value, indentLevel + 4) + // Maintain proper indentation
-                            `\n${indent}  ::endgroup::`;
+                        // ✅ Expand nested attributes with additional indentation
+                        return `${indent}- **${key}**:\n` + formatAttributes(value, indentLevel + 4);
                     } else {
                         return `${indent}- **${key}**: ${JSON.stringify(value)}`;
                     }
@@ -116,7 +114,7 @@ async function runTerraform() {
     
             // Extract attributes and format them properly
             const attributes = change.change.after || {};
-            const formattedAttributes = formatAttributes(attributes, 10); // Ensure uniform indentation
+            const formattedAttributes = formatAttributes(attributes, 8); // Start indentation at 8 spaces
     
             actions.forEach(action => {
                 if (changeCategories[action]) {
@@ -147,12 +145,10 @@ async function runTerraform() {
                 console.log(`${actionLabels[action]}:`);
     
                 changeCategories[action].forEach(resource => {
-                    console.log(`        ▶ ${resource.address}`);
-    
-                    // ✅ Make each resource collapsible using `::group::`
-                    console.log(`        ::group::Details for ${resource.address}`);
+                    // ✅ Resource is collapsible
+                    console.log(`::group::▶ ${resource.address}`);
                     console.log(resource.formattedAttributes); // Properly formatted key-value attributes
-                    console.log("        ::endgroup::");
+                    console.log("::endgroup::");
                 });
     
                 console.log(""); // Add empty line for spacing
