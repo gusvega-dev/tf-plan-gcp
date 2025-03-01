@@ -92,19 +92,19 @@ async function runTerraform() {
             delete: []
         };
     
-        // Function to format attributes with correct indentation
-        function formatAttributes(attributes, indentLevel = 2) {
+        // Function to format attributes with proper indentation
+        function formatAttributes(attributes, indentLevel = 4) {
             return Object.entries(attributes)
                 .map(([key, value]) => {
-                    const indent = " ".repeat(indentLevel * 2); // Create indentation
+                    const indent = " ".repeat(indentLevel); // Create indentation
     
                     if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-                        // ✅ Expand nested objects with consistent indentation
-                        return `${indent}- ${key}:\n${indent}  ::group::Expand ${key}\n` +
-                            formatAttributes(value, indentLevel + 2) + // Recursively indent nested attributes
-                            `\n${indent}  ::endgroup::`;
+                        // ✅ Expand nested objects with proper indentation
+                        return `${indent}- **${key}**:\n${indent}::group::Expand ${key}\n` +
+                            formatAttributes(value, indentLevel + 2) + // Maintain indentation level
+                            `\n${indent}::endgroup::`;
                     } else {
-                        return `${indent}- ${key}: ${JSON.stringify(value)}`;
+                        return `${indent}- **${key}**: ${JSON.stringify(value)}`;
                     }
                 })
                 .join("\n");
@@ -116,7 +116,7 @@ async function runTerraform() {
     
             // Extract attributes and format them properly
             const attributes = change.change.after || {};
-            const formattedAttributes = formatAttributes(attributes, 4); // Start at indent level 4
+            const formattedAttributes = formatAttributes(attributes, 10); // Ensure consistent indentation
     
             actions.forEach(action => {
                 if (changeCategories[action]) {
@@ -147,11 +147,12 @@ async function runTerraform() {
                 console.log(`${actionLabels[action]}:`);
     
                 changeCategories[action].forEach(resource => {
+                    console.log(`          ▶ ${resource.address}`);
     
                     // ✅ Make each resource collapsible using `::group::`
-                    console.log(`::group::${resource.address}`);
+                    console.log(`          ::group::Details for ${resource.address}`);
                     console.log(resource.formattedAttributes); // Properly formatted key-value attributes
-                    console.log("::endgroup::");
+                    console.log("          ::endgroup::");
                 });
     
                 console.log(""); // Add empty line for spacing
