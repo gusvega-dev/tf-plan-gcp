@@ -1,4 +1,4 @@
-name: "Terraform Plan Action"
+name: "Terraform Plan GCP Action"
 description: "Executes Terraform Plan inside a container"
 author: "gusvega"
 branding:
