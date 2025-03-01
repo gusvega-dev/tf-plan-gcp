@@ -105,7 +105,7 @@ if (fs.existsSync(jsonOutputPath)) {
     });
 
     // Print formatted changes
-    console.log("Terraform Plan Changes:");
+    console.log("🔄 Terraform Plan Changes:");
     console.log(`🔍 Found ${changesCount} resource changes.`);
 
     ["create", "update", "delete"].forEach(action => {
@@ -141,12 +141,3 @@ async function run() {
 }
 
 run();
-
-🔄 Terraform Plan Changes:
-🔍 Found 1 resource changes.
-Create:
-- google_storage_bucket.terraform_bucket
-Update:
-- google_project_service.compute
-Destroy:
-- google_project_service.storage_api
