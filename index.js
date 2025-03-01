@@ -96,17 +96,11 @@ async function runTerraform() {
             const address = change.address; // Full resource path
             const actions = change.change.actions; // Array of actions (["create"], ["update"], ["delete"])
     
-            // Extract attributes, ensuring a structured JSON format
+            // Extract attributes as key-value pairs
             const attributes = change.change.after || {};
-            const formattedAttributes = JSON.stringify(attributes, null, 2) // Pretty print JSON
-    
-                // Improve formatting: Wrap keys in ***
-                .replace(/\"([\w-]+)\":/g, '***\n    "$1":')
-                .replace(/\n  \}/g, '\n  ***') // Close attribute groups
-    
-                // Adjust formatting for nested objects
-                .replace(/\{\n    /g, '{\n      ***\n    ')
-                .replace(/\n    \}/g, '\n    ***\n  }');
+            const formattedAttributes = Object.entries(attributes)
+                .map(([key, value]) => `- **${key}**: ${JSON.stringify(value)}`)
+                .join("\n");
     
             actions.forEach(action => {
                 if (changeCategories[action]) {
@@ -141,9 +135,7 @@ async function runTerraform() {
     
                     // ✅ Make each resource collapsible using `::group::`
                     console.log(`::group::Details for ${resource.address}`);
-                    console.log("```json");
-                    console.log(resource.formattedAttributes);
-                    console.log("```");
+                    console.log(resource.formattedAttributes); // Key-value format instead of JSON
                     console.log("::endgroup::");
                 });
     
