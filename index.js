@@ -92,10 +92,6 @@ async function runTerraform() {
             delete: []
         };
     
-        // Collect markdown-formatted changes for GitHub output
-        let markdownOutput = `## 🔄 Terraform Plan Changes\n`;
-        markdownOutput += `🔍 **Found ${changesCount} resource changes**\n\n`;
-    
         changes.forEach(change => {
             const address = change.address; // Full resource path
             const actions = change.change.actions; // Array of actions (["create"], ["update"], ["delete"])
@@ -103,15 +99,9 @@ async function runTerraform() {
     
             actions.forEach(action => {
                 if (changeCategories[action]) {
-                    changeCategories[action].push(address);
+                    changeCategories[action].push({ address, attributes });
                 }
             });
-    
-            // Generate collapsible section for each resource change
-            markdownOutput += `<details>\n`;
-            markdownOutput += `<summary> **${actions.join(", ").toUpperCase()}** - ${address} </summary>\n\n`;
-            markdownOutput += "```json\n" + attributes + "\n```\n";
-            markdownOutput += `</details>\n\n`;
         });
     
         // ✅ Now, count the number of each type **after** populating the categories
@@ -119,27 +109,39 @@ async function runTerraform() {
         const updateCount = changeCategories.update.length;
         const deleteCount = changeCategories.delete.length;
     
-        // Append summary counts
-        markdownOutput += `### Summary:\n`;
-        markdownOutput += `- **Create**: ${createCount}\n`;
-        markdownOutput += `- **Update**: ${updateCount}\n`;
-        markdownOutput += `- **Destroy**: ${deleteCount}\n`;
-    
-        // Print formatted changes
+        // Print summary
         console.log("🔄 Terraform Plan Changes:");
-        console.log(`🔍 Found ${changesCount} resource changes. Create: ${createCount}, Update: ${updateCount}, Destroy: ${deleteCount}`);
+        console.log(`🔍 Found ${changesCount} resource changes.\n`);
+    
+        // Define display order
+        const actionLabels = {
+            create: "CREATE",
+            update: "UPDATE",
+            delete: "DELETE"
+        };
     
         ["create", "update", "delete"].forEach(action => {
             if (changeCategories[action].length > 0) {
-                console.log(`${action.charAt(0).toUpperCase() + action.slice(1)}:`); // Capitalize action
-                changeCategories[action].forEach(resource => console.log(`- ${resource}`));
+                console.log(`${actionLabels[action]}:`);
+    
+                changeCategories[action].forEach(resource => {
+                    console.log(`▶ ${resource.address}`);
+                    
+                    // ✅ Make each resource collapsible using `::group::`
+                    console.log(`::group::Details for ${resource.address}`);
+                    console.log("```json");
+                    console.log(resource.attributes);
+                    console.log("```");
+                    console.log("::endgroup::");
+                });
+    
+                console.log(""); // Add empty line for spacing
             }
         });
     
         // Set GitHub Actions outputs
         core.setOutput("resources_changed", changesCount);
         core.setOutput("change_details", JSON.stringify(changeCategories));
-        core.setOutput("formatted_output", markdownOutput); // Markdown output for GitHub Actions
     } else {
         console.log("⚠️ No Terraform JSON output found.");
         core.setOutput("resources_changed", 0);
