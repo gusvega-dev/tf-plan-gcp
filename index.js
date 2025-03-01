@@ -92,27 +92,31 @@ async function runTerraform() {
             delete: []
         };
     
+        // Function to format attributes with indentation
+        function formatAttributes(attributes, indentLevel = 2) {
+            return Object.entries(attributes)
+                .map(([key, value]) => {
+                    const indent = " ".repeat(indentLevel * 2); // Create indentation
+    
+                    if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+                        // ✅ Expand nested objects as collapsible groups with indentation
+                        return `${indent}- ${key}:\n${indent}  ::group::Expand ${key}\n` +
+                            formatAttributes(value, indentLevel + 1) + // Recursively format nested objects
+                            `\n${indent}  ::endgroup::`;
+                    } else {
+                        return `${indent}- ${key}: ${JSON.stringify(value)}`;
+                    }
+                })
+                .join("\n");
+        }
+    
         changes.forEach(change => {
             const address = change.address; // Full resource path
             const actions = change.change.actions; // Array of actions (["create"], ["update"], ["delete"])
     
-            // Extract attributes and format key-value pairs
+            // Extract attributes and format them properly
             const attributes = change.change.after || {};
-            let formattedAttributes = "";
-    
-            Object.entries(attributes).forEach(([key, value]) => {
-                if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-                    // ✅ Expand nested objects as collapsible groups
-                    formattedAttributes += `- ${key}: \n`;
-                    formattedAttributes += `  ::group::Expand ${key}\n`;
-                    formattedAttributes += Object.entries(value)
-                        .map(([subKey, subValue]) => `  - **${subKey}**: ${JSON.stringify(subValue)}`)
-                        .join("\n") + "\n";
-                    formattedAttributes += `  ::endgroup::\n`;
-                } else {
-                    formattedAttributes += `- ${key}: ${JSON.stringify(value)}\n`;
-                }
-            });
+            const formattedAttributes = formatAttributes(attributes, 2); // Start at indent level 2
     
             actions.forEach(action => {
                 if (changeCategories[action]) {
@@ -143,10 +147,10 @@ async function runTerraform() {
                 console.log(`${actionLabels[action]}:`);
     
                 changeCategories[action].forEach(resource => {
-    
+
                     // ✅ Make each resource collapsible using `::group::`
                     console.log(`::group::${resource.address}`);
-                    console.log(resource.formattedAttributes); // Key-value format with expandable objects
+                    console.log(resource.formattedAttributes); // Properly formatted key-value attributes
                     console.log("::endgroup::");
                 });
     
