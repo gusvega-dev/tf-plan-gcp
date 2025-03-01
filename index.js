@@ -80,13 +80,29 @@ async function runTerraform() {
     // Read and parse the JSON output
     if (fs.existsSync(jsonOutputPath)) {
         const tfJson = JSON.parse(fs.readFileSync(jsonOutputPath, 'utf8'));
-
-        // Extract specific info (example: changed resources)
-        const changes = tfJson.resource_changes ? tfJson.resource_changes.length : 0;
-
+    
+        // Extract all resource changes
+        const changes = tfJson.resource_changes || [];
+        const changesCount = changes.length;
+    
+        // Build a list of all changes
+        const changeDetails = changes.map(change => {
+            return {
+                address: change.address,  // Full resource path (e.g., aws_instance.example)
+                action: change.change.actions.join(", ") // e.g., "create", "update", "delete"
+            };
+        });
+    
+        // Print changes in a readable format
+        console.log("🔄 Terraform Plan Changes:");
+        changeDetails.forEach(change => {
+            console.log(`- ${change.address}: ${change.action}`);
+        });
+    
         // Set GitHub Actions output
-        core.setOutput("resources_changed", changes);
-        console.log(`🔍 Found ${changes} resource changes.`);
+        core.setOutput("resources_changed", changesCount);
+        core.setOutput("change_details", JSON.stringify(changeDetails));
+        console.log(`🔍 Found ${changesCount} resource changes.`);
     } else {
         console.log("⚠️ No Terraform JSON output found.");
         core.setOutput("resources_changed", 0);
