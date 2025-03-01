@@ -95,11 +95,22 @@ async function runTerraform() {
         changes.forEach(change => {
             const address = change.address; // Full resource path
             const actions = change.change.actions; // Array of actions (["create"], ["update"], ["delete"])
-            const attributes = JSON.stringify(change.change.after || {}, null, 2); // Get formatted attributes
+    
+            // Extract attributes, ensuring a structured JSON format
+            const attributes = change.change.after || {};
+            const formattedAttributes = JSON.stringify(attributes, null, 2) // Pretty print JSON
+    
+                // Improve formatting: Wrap keys in ***
+                .replace(/\"([\w-]+)\":/g, '***\n    "$1":')
+                .replace(/\n  \}/g, '\n  ***') // Close attribute groups
+    
+                // Adjust formatting for nested objects
+                .replace(/\{\n    /g, '{\n      ***\n    ')
+                .replace(/\n    \}/g, '\n    ***\n  }');
     
             actions.forEach(action => {
                 if (changeCategories[action]) {
-                    changeCategories[action].push({ address, attributes });
+                    changeCategories[action].push({ address, formattedAttributes });
                 }
             });
         });
@@ -111,7 +122,8 @@ async function runTerraform() {
     
         // Print summary
         console.log("🔄 Terraform Plan Changes:");
-        console.log(`🔍 Found ${changesCount} resource changes.\n`);
+        console.log(`🔍 Found ${changesCount} resource changes.`);
+        console.log(`CREATE: ${createCount} | UPDATE: ${updateCount} | DELETE: ${deleteCount}\n`);
     
         // Define display order
         const actionLabels = {
@@ -126,11 +138,11 @@ async function runTerraform() {
     
                 changeCategories[action].forEach(resource => {
                     console.log(`▶ ${resource.address}`);
-                    
+    
                     // ✅ Make each resource collapsible using `::group::`
                     console.log(`::group::Details for ${resource.address}`);
                     console.log("```json");
-                    console.log(resource.attributes);
+                    console.log(resource.formattedAttributes);
                     console.log("```");
                     console.log("::endgroup::");
                 });
