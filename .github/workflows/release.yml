@@ -8,7 +8,7 @@ on:
 
 env:
   IMAGE_NAME: ghcr.io/gusvega-dev/tf-plan-gcp
-  VERSION: 'v1.0.1'
+  VERSION: 'v1.0.0'
 
 jobs:
   publish:
