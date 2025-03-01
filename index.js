@@ -78,35 +78,51 @@ async function runTerraform() {
     }
 
     // Read and parse the JSON output
-    if (fs.existsSync(jsonOutputPath)) {
-        const tfJson = JSON.parse(fs.readFileSync(jsonOutputPath, 'utf8'));
-    
-        // Extract all resource changes
-        const changes = tfJson.resource_changes || [];
-        const changesCount = changes.length;
-    
-        // Build a list of all changes
-        const changeDetails = changes.map(change => {
-            return {
-                address: change.address,  // Full resource path (e.g., aws_instance.example)
-                action: change.change.actions.join(", ") // e.g., "create", "update", "delete"
-            };
+// Read and parse the JSON output
+if (fs.existsSync(jsonOutputPath)) {
+    const tfJson = JSON.parse(fs.readFileSync(jsonOutputPath, 'utf8'));
+
+    // Extract all resource changes
+    const changes = tfJson.resource_changes || [];
+    const changesCount = changes.length;
+
+    // Categorize resources by action type
+    const changeCategories = {
+        create: [],
+        update: [],
+        delete: []
+    };
+
+    changes.forEach(change => {
+        const address = change.address; // Full resource path
+        const actions = change.change.actions; // Array of actions (["create"], ["update"], ["delete"])
+
+        actions.forEach(action => {
+            if (changeCategories[action]) {
+                changeCategories[action].push(address);
+            }
         });
-    
-        // Print changes in a readable format
-        console.log("🔄 Terraform Plan Changes:");
-        changeDetails.forEach(change => {
-            console.log(`- ${change.address}: ${change.action}`);
-        });
-    
-        // Set GitHub Actions output
-        core.setOutput("resources_changed", changesCount);
-        core.setOutput("change_details", JSON.stringify(changeDetails));
-        console.log(`🔍 Found ${changesCount} resource changes.`);
-    } else {
-        console.log("⚠️ No Terraform JSON output found.");
-        core.setOutput("resources_changed", 0);
-    }
+    });
+
+    // Print formatted changes
+    console.log("🔄 Terraform Plan Changes:");
+    console.log(`🔍 Found ${changesCount} resource changes.`);
+
+    ["create", "update", "delete"].forEach(action => {
+        if (changeCategories[action].length > 0) {
+            console.log(`${action.charAt(0).toUpperCase() + action.slice(1)}:`); // Capitalize action
+            changeCategories[action].forEach(resource => console.log(`- ${resource}`));
+        }
+    });
+
+    // Set GitHub Actions outputs
+    core.setOutput("resources_changed", changesCount);
+    core.setOutput("change_details", JSON.stringify(changeCategories));
+} else {
+    console.log("⚠️ No Terraform JSON output found.");
+    core.setOutput("resources_changed", 0);
+}
+
 
     core.setOutput("plan_status", "success");
 }
@@ -125,3 +141,12 @@ async function run() {
 }
 
 run();
+
+🔄 Terraform Plan Changes:
+🔍 Found 1 resource changes.
+Create:
+- google_storage_bucket.terraform_bucket
+Update:
+- google_project_service.compute
+Destroy:
+- google_project_service.storage_api
