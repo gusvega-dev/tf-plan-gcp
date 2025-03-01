@@ -105,7 +105,7 @@ if (fs.existsSync(jsonOutputPath)) {
     });
 
     // Print formatted changes
-    console.log(`🔄 Terraform Plan Changes:`);
+    console.log("Terraform Plan Changes:");
     console.log(`🔍 Found ${changesCount} resource changes.`);
 
     ["create", "update", "delete"].forEach(action => {
