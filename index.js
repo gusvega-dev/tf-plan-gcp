@@ -133,6 +133,7 @@ async function runTerraform() {
         console.log(`🔍 Found ${changesCount} resource changes.`);
         console.log(" ");
         console.log(`CREATE: ${createCount} | UPDATE: ${updateCount} | DELETE: ${deleteCount}\n`);
+        console.log(" ");
     
         // Define display order
         const actionLabels = {
