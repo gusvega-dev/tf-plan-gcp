@@ -96,11 +96,23 @@ async function runTerraform() {
             const address = change.address; // Full resource path
             const actions = change.change.actions; // Array of actions (["create"], ["update"], ["delete"])
     
-            // Extract attributes as key-value pairs
+            // Extract attributes and format key-value pairs
             const attributes = change.change.after || {};
-            const formattedAttributes = Object.entries(attributes)
-                .map(([key, value]) => `- ${key}: ${JSON.stringify(value)}`)
-                .join("\n");
+            let formattedAttributes = "";
+    
+            Object.entries(attributes).forEach(([key, value]) => {
+                if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+                    // ✅ Expand nested objects as collapsible groups
+                    formattedAttributes += `- ${key}: \n`;
+                    formattedAttributes += `  ::group::Expand ${key}\n`;
+                    formattedAttributes += Object.entries(value)
+                        .map(([subKey, subValue]) => `  - **${subKey}**: ${JSON.stringify(subValue)}`)
+                        .join("\n") + "\n";
+                    formattedAttributes += `  ::endgroup::\n`;
+                } else {
+                    formattedAttributes += `- ${key}: ${JSON.stringify(value)}\n`;
+                }
+            });
     
             actions.forEach(action => {
                 if (changeCategories[action]) {
@@ -134,7 +146,7 @@ async function runTerraform() {
     
                     // ✅ Make each resource collapsible using `::group::`
                     console.log(`::group::${resource.address}`);
-                    console.log(resource.formattedAttributes); // Key-value format instead of JSON
+                    console.log(resource.formattedAttributes); // Key-value format with expandable objects
                     console.log("::endgroup::");
                 });
     
