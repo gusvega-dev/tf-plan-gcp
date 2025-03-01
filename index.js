@@ -45,15 +45,43 @@ function setupGcpCredentials() {
 /**
  * Runs Terraform commands: init and plan.
  */
+const core = require('@actions/core');
+const exec = require('@actions/exec');
+const fs = require('fs');
+
+/**
+ * Runs Terraform commands with suppressed output and extracts specific info from JSON.
+ */
 async function runTerraform() {
     console.log("🏗 Running Terraform Init...");
-    await exec.exec('terraform init -input=false');
+    await exec.exec('terraform init -input=false', [], { silent: true });
 
     console.log("📊 Running Terraform Plan...");
-    await exec.exec('terraform plan -out=tfplan');
+    await exec.exec('terraform plan -out=tfplan', [], { silent: true });
+
+    // Generate JSON output
+    console.log("📝 Converting Terraform plan to JSON...");
+    const jsonOutputPath = "/github/workspace/tfplan.json";
+    await exec.exec(`terraform show -json tfplan > ${jsonOutputPath}`, [], { silent: true });
+
+    // Read and parse the JSON output
+    if (fs.existsSync(jsonOutputPath)) {
+        const tfJson = JSON.parse(fs.readFileSync(jsonOutputPath, 'utf8'));
+
+        // Extract specific info (example: changed resources)
+        const changes = tfJson.resource_changes ? tfJson.resource_changes.length : 0;
+
+        // Set GitHub Actions output
+        core.setOutput("resources_changed", changes);
+        console.log(`🔍 Found ${changes} resource changes.`);
+    } else {
+        console.log("⚠️ No Terraform JSON output found.");
+        core.setOutput("resources_changed", 0);
+    }
 
     core.setOutput("plan_status", "success");
 }
+
 
 /**
  * Main execution function.
