@@ -2,6 +2,8 @@ const core = require('@actions/core');
 const exec = require('@actions/exec');
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process'); // Use execSync for capturing output
+
 
 /**
  * Sets up the working directory based on user input.
@@ -68,7 +70,8 @@ async function runTerraform() {
     const jsonOutputPath = "/github/workspace/tfplan.json";
 
     try {
-        await exec.exec(`terraform show -json tfplan > ${jsonOutputPath}`, [], { silent: false });
+        const jsonOutput = execSync('terraform show -json tfplan', { encoding: 'utf8' }); // Capture JSON output
+        fs.writeFileSync(jsonOutputPath, jsonOutput); // Write to file manually
     } catch (error) {
         core.setFailed(`❌ Failed to generate Terraform JSON output: ${error.message}`);
         return;
