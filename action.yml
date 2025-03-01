@@ -1,6 +1,9 @@
 name: "Terraform Plan Action"
 description: "Executes Terraform Plan inside a container"
 author: "gusvega"
+branding:
+  icon: "cloud"
+  color: "red"
 
 inputs:
   workdir:
