@@ -105,9 +105,8 @@ jobs:
 ## Troubleshooting
 ### Issue: Terraform Plan Fails
 Check the logs for errors:
-1. Ensure Terraform is initialized (`terraform init`).
-2. Check for syntax issues in your Terraform files.
-3. Verify Google Cloud credentials are correctly set in `secrets.GCP_CREDENTIALS`.
+1. Check for syntax issues in your Terraform files.
+2. Verify Google Cloud credentials are correctly set in `secrets.GCP_CREDENTIALS`.
 
 ### Issue: Workdir Not Found
 Make sure:
