@@ -93,7 +93,7 @@ async function runTerraform() {
         };
     
         // Function to format attributes with proper indentation (recursive for nested attributes)
-        function formatAttributes(attributes, indentLevel = 6) {
+        function formatAttributes(attributes, indentLevel = 3) {
             return Object.entries(attributes)
                 .map(([key, value]) => {
                     const indent = " ".repeat(indentLevel); // Create indentation
