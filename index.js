@@ -100,9 +100,9 @@ async function runTerraform() {
                     
                     if (typeof value === "object" && value !== null && !Array.isArray(value)) {
                         // ✅ Expand nested attributes with additional indentation
-                        return `${indent}- **${key}**:\n` + formatAttributes(value, indentLevel + 4);
+                        return `${indent}- ${key}:\n` + formatAttributes(value, indentLevel + 4);
                     } else {
-                        return `${indent}- **${key}**: ${JSON.stringify(value)}`;
+                        return `${indent}- ${key}: ${JSON.stringify(value)}`;
                     }
                 })
                 .join("\n");
@@ -146,7 +146,7 @@ async function runTerraform() {
     
                 changeCategories[action].forEach(resource => {
                     // ✅ Resource is collapsible
-                    console.log(`::group::▶ ${resource.address}`);
+                    console.log(`::group::${resource.address}`);
                     console.log(resource.formattedAttributes); // Properly formatted key-value attributes
                     console.log("::endgroup::");
                 });
