@@ -13,9 +13,6 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write  # Required for pushing to GHCR
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
