@@ -141,7 +141,7 @@ This project is licensed under the MIT License.
 ---
 
 ## Author
-Maintained by: [@gusvega](https://github.com/gusvega)
+Maintained by Gus Vega : [@gusvega](https://github.com/gusvega)
 
 For feature requests and issues, please open a GitHub Issue.
 
