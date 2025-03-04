@@ -19,7 +19,4 @@ runs:
   using: "docker"
   image: "docker://ghcr.io/gusvega-dev/tf-plan-gcp:v1.0.1"
 
-description: |
-  Terraform Plan GitHub Action for Google Cloud (GCP), built by Gus Vega.
-  - **Primary Category:** Continuous Integration
-  - **Tags:** terraform, gcp, cloud, infrastructure-as-code, iac, devops, github-actions, ci-cd, terraform-plan, gusvega
+description: "Run Terraform Plan in a containerized GitHub Action for GCP, built by Gus Vega. No Terraform install required."
