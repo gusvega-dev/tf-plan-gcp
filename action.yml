@@ -18,5 +18,3 @@ outputs:
 runs:
   using: "docker"
   image: "docker://ghcr.io/gusvega-dev/tf-plan-gcp:v1.0.1"
-
-description: "Run Terraform Plan in a containerized GitHub Action for GCP, built by Gus Vega. No Terraform install required."
