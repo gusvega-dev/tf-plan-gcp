@@ -1,12 +1,15 @@
-# Terraform Plan Action (`tf-plan-gcp`)
+# Terraform Plan GCP Action (`tf-plan-gcp`)
 
-`tf-plan-gcp` is a GitHub Action that runs Terraform Plan inside a containerized environment. It helps execute Terraform plan operations with structured and collapsible output formatting.
+`tf-plan-gcp` is a GitHub Action that runs `terraform plan` inside a containerized environment. It helps execute Terraform plan operations with structured and collapsible output formatting, ensuring seamless integration with Google Cloud workflows.
+
+---
 
 ## Features
-- Containerized Execution → Runs inside a prebuilt Docker container.
-- Automatic Directory Handling → Works within your Terraform directory.
-- Collapsible Terraform Output → Groups resource changes for better readability.
-- Google Cloud Credentials Support → Reads authentication from GitHub Secrets.
+- **Containerized Execution** → Runs inside a prebuilt Docker container.
+- **Automatic Directory Handling** → Works within your Terraform directory.
+- **Collapsible Terraform Output** → Groups resource changes for better readability.
+- **Google Cloud Credentials Support** → Reads authentication from GitHub Secrets.
+- **Works on Any GitHub Runner** → No dependency issues—run Terraform anywhere.
 
 ---
 
@@ -20,24 +23,23 @@
   env:
     GOOGLE_APPLICATION_CREDENTIALS: "${{ secrets.GCP_CREDENTIALS }}"
 ```
-
 This will:
-- Run Terraform Plan inside the `./terraform` directory.
+- Run `terraform plan` inside the `./terraform` directory.
 - Use Google Cloud credentials from GitHub Secrets (`GCP_CREDENTIALS`).
 - Display formatted Terraform changes inside GitHub Actions logs.
 
 ---
 
 ## Inputs
-| Name       | Description                                | Required | Default |
-|------------|--------------------------------------------|----------|---------|
-| `workdir`  | The Terraform working directory.          | No    | `"."`   |
+| Name      | Required | Default | Description |
+|-----------|----------|---------|-------------|
+| `workdir` | No | `.` | Working directory for Terraform execution |
 
 ---
 
 ## Outputs
-| Name           | Description                                |
-|---------------|--------------------------------------------|
+| Name          | Description |
+|--------------|-------------|
 | `plan_status` | The status of the Terraform Plan execution. |
 
 ---
@@ -72,7 +74,6 @@ repo-root/
 
 ## Example: Full Terraform Workflow
 Here’s a full Terraform CI/CD pipeline using `tf-plan-gcp`:
-
 ```yaml
 name: Terraform CI
 
@@ -95,20 +96,39 @@ jobs:
         env:
           GOOGLE_APPLICATION_CREDENTIALS: "${{ secrets.GCP_CREDENTIALS }}"
 ```
-
 - Automatically runs Terraform Plan when pushing to `main`.
 - Ensures the Terraform directory is set correctly.
 - Uses Google Cloud credentials for authentication.
 
 ---
 
+## Comparison vs. HashiCorp Terraform Action
+| Feature                     | `tf-plan-gcp` (This Action) | HashiCorp Action |
+|-----------------------------|----------------------|------------------|
+| Requires Terraform Install  | No (Containerized) | Yes |
+| Native GCP Support          | Yes | No |
+| Structured Terraform Logs   | Yes | No |
+| Works on Any GitHub Runner  | Yes | No (Requires Terraform Installed) |
+
+---
+
+## Future Enhancements
+Additional Terraform automation tools are planned, including:
+- Terraform Security Scanning
+- Cost Estimation for Terraform
+- Drift Detection and Auto-Remediation
+
+Stay tuned for updates as these become available.
+
+---
+
 ## Troubleshooting
-### Issue: Terraform Plan Fails
+### Terraform Plan Fails
 Check the logs for errors:
 1. Check for syntax issues in your Terraform files.
 2. Verify Google Cloud credentials are correctly set in `secrets.GCP_CREDENTIALS`.
 
-### Issue: Workdir Not Found
+### Workdir Not Found
 Make sure:
 - The `workdir` input is set to the correct path inside your repository.
 - Your Terraform configuration exists in the specified directory.
@@ -123,11 +143,11 @@ This project is licensed under the MIT License.
 ## Author
 Maintained by: [@gusvega](https://github.com/gusvega)
 
-For feature requests & issues, please open a GitHub Issue.
+For feature requests and issues, please open a GitHub Issue.
 
 ---
 
 ### Ready to use?
 Use `tf-plan-gcp` in your Terraform pipelines today.
-Star this repo if you found it useful.
+Star this repository if you find it useful.
 
