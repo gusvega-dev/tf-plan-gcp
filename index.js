@@ -72,11 +72,11 @@ function setupGcpCredentials() {
  */
 async function runTerraform() {
     console.log("🏗 Running Terraform Init...");
-    await exec.exec('terraform init -input=false', [], { silent: true }); // Show output for debugging
+    await exec.exec('terraform init -input=false', [], { silent: false }); // Show output for debugging
 
     console.log("📊 Running Terraform Plan...");
     try {
-        await exec.exec('terraform plan -out=tfplan', [], { silent: true }); // Show output for debugging
+        await exec.exec('terraform plan -out=tfplan', [], { silent: false }); // Show output for debugging
     } catch (error) {
         core.setFailed(`❌ Terraform Plan failed: ${error.message}`);
         return;
