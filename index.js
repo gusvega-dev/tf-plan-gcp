@@ -28,13 +28,14 @@ function setupWorkdir() {
  * Parses secrets and sets them as Terraform environment variables.
  */
 function setupSecrets() {
-    const secretsInput = core.getInput('secrets') || "{}";
+    let secretsInput = core.getInput('secrets') || "{}";
 
     try {
-        const secrets = JSON.parse(secretsInput);
+        // Ensure secretsInput is valid JSON
+        const secrets = JSON.parse(secretsInput.replace(/\n/g, '')); // Remove any newlines
+
         console.log("🔑 Setting up secrets...");
 
-        // Convert secrets object into Terraform-compatible environment variables
         Object.entries(secrets).forEach(([key, value]) => {
             const tfVarName = `TF_VAR_${key}`;
             process.env[tfVarName] = value;
