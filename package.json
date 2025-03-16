@@ -1,6 +1,6 @@
 {
   "name": "tf-plan-gcp",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "GitHub Action for fast Terraform Plan execution",
   "main": "index.js",
   "dependencies": {
