@@ -31,16 +31,13 @@ function setupSecrets() {
     let secretsInput = core.getInput('secrets') || "{}";
 
     try {
-        // Ensure secretsInput is valid JSON
-        const secrets = JSON.parse(secretsInput.replace(/\n/g, '')); // Remove any newlines
-
+        const secrets = JSON.parse(secretsInput);
         console.log("🔑 Setting up secrets...");
 
-        Object.entries(secrets).forEach(([key, value]) => {
-            const tfVarName = `TF_VAR_${key}`;
-            process.env[tfVarName] = value;
-            console.log(`✅ Secret '${key}' available as '${tfVarName}'`);
-        });
+        // Convert secrets into a single JSON string for Terraform
+        const secretsJson = JSON.stringify(secrets);
+        process.env["TF_VAR_secrets"] = secretsJson;
+        console.log(`✅ All secrets available as 'TF_VAR_secrets'`);
 
     } catch (error) {
         core.setFailed(`❌ Error parsing secrets input: ${error.message}`);
