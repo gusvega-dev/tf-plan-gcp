@@ -25,6 +25,28 @@ function setupWorkdir() {
 }
 
 /**
+ * Parses secrets and sets them as Terraform environment variables.
+ */
+function setupSecrets() {
+    const secretsInput = core.getInput('secrets') || "{}";
+
+    try {
+        const secrets = JSON.parse(secretsInput);
+        console.log("🔑 Setting up secrets...");
+
+        // Convert secrets object into Terraform-compatible environment variables
+        Object.entries(secrets).forEach(([key, value]) => {
+            const tfVarName = `TF_VAR_${key}`;
+            process.env[tfVarName] = value;
+            console.log(`✅ Secret '${key}' available as '${tfVarName}'`);
+        });
+
+    } catch (error) {
+        core.setFailed(`❌ Error parsing secrets input: ${error.message}`);
+    }
+}
+
+/**
  * Handles Google Cloud credentials setup if provided via environment variables.
  */
 function setupGcpCredentials() {
@@ -173,6 +195,7 @@ async function runTerraform() {
 async function run() {
     try {
         setupWorkdir();
+        setupSecrets();
         setupGcpCredentials(); // Uses GOOGLE_APPLICATION_CREDENTIALS directly
         await runTerraform();
     } catch (error) {

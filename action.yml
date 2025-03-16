@@ -10,6 +10,10 @@ inputs:
     description: "Working directory for Terraform"
     required: false
     default: "."
+  secrets:
+    description: "JSON string containing secrets"
+    required: false
+    default: "{}"
 
 outputs:
   plan_status:
@@ -17,4 +21,4 @@ outputs:
 
 runs:
   using: "docker"
-  image: "docker://ghcr.io/gusvega-dev/tf-plan-gcp:v1.0.1"
+  image: "docker://ghcr.io/gusvega-dev/tf-plan-gcp:v1.0.2"
