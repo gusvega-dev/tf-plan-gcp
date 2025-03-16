@@ -1,6 +1,12 @@
 # Base image
 FROM node:20
 
+# Set metadata labels
+LABEL org.opencontainers.image.title="Terraform Plan GCP Action"
+LABEL org.opencontainers.image.description="A GitHub Action that runs Terraform Plan inside a containerized environment with structured output, Google Cloud authentication, and dynamic secret handling."
+LABEL org.opencontainers.image.version="1.0.0"
+LABEL org.opencontainers.image.authors="Gus Vega <github.com/gusvega>"
+
 # Set non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive 
 
