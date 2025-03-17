@@ -53,6 +53,42 @@
 
 ---
 
+## Using Secrets in Terraform
+The secrets passed to the action are automatically available in Terraform as environment variables prefixed with `TF_VAR_` - for example :
+
+### Defining Secrets in Terraform (`variables.tf`)
+Create a `variables.tf` file to define the secrets:
+```hcl
+variable "secrets" {
+  type = map(string)
+}
+```
+
+### Accessing Secrets in Terraform (`main.tf`)
+The secrets can be accessed in Terraform using:
+```hcl
+provider "google" {
+  project = var.secrets["project_id"]
+}
+
+resource "some_resource" "example" {
+  api_key = var.secrets["api_key"]
+}
+```
+
+### Outputting Secrets in Terraform (`outputs.tf`)
+You can also output specific secrets for debugging purposes:
+```hcl
+output "project_id" {
+  value = var.secrets["project_id"]
+  sensitive = true
+}
+```
+
+This allows Terraform to use the secrets securely without exposing them in the configuration files.
+
+---
+
 ## Outputs
 | Name          | Description |
 |--------------|-------------|
