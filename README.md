@@ -172,16 +172,6 @@ jobs:
 
 ---
 
-## Future Enhancements
-Additional Terraform automation tools are planned, including:
-- Terraform Security Scanning → Identify misconfigurations.
-- Cost Estimation for Terraform → Prevent overspending.
-- Drift Detection and Auto-Remediation → Detect and fix configuration drift.
-
-Stay tuned for updates as these become available.
-
----
-
 ## Troubleshooting
 ### Terraform Plan Fails
 Check the logs for errors:
@@ -204,6 +194,43 @@ If Terraform is failing due to missing secrets:
 3. Ensure secrets are passed as a JSON object to the action.
 
 ---
+
+## Future Actions
+As part of a broader Terraform automation suite, additional actions will be developed, including:
+
+### **Infrastructure Provisioning & Deployment**
+- Terraform Lint & Format
+- Security Scan
+- Cost Estimation
+- Apply Execution
+- State Backup
+- Post-Deployment Tests
+- Change Management Logging
+
+### **Drift Detection & Auto-Remediation**
+- Drift Detection
+- Auto-Remediation
+- Compliance Check
+- Manual Approval for Remediation
+
+### **CI/CD for Multi-Environment Deployments**
+- Validate Changes
+- Deploy to Dev
+- Integration Tests
+- Manual Approval for Staging
+- Deploy to Staging
+- Security Scan Before Prod
+- Deploy to Production
+
+### **Secret Management & Security Enforcement**
+- Secrets Detection
+- Secrets Rotation
+- IAM Policy Review
+- Dynamic Secrets Management
+
+Stay tuned for updates as these become available.
+
+--- 
 
 ## License
 This project is licensed under the MIT License.
